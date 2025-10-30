@@ -1,0 +1,452 @@
+// src/services/shopifyService.ts
+import client from '../lib/shopify';
+
+// Types
+interface PriceRange {
+    amount: string;
+    currencyCode: string;
+}
+
+interface Metafield {
+    key: string;
+    value: string;
+}
+
+interface Product {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    originalPrice: number | null;
+    images: string[];
+    location: string;
+    duration: string;
+    rating: number;
+    reviewsCount: number;
+    groupSize: string;
+}
+
+interface ProductDetail extends Product {
+    descriptionHtml: string;
+    variants: Variant[];
+    highlights: string[];
+    whatsIncluded: string[];
+}
+
+interface Variant {
+    id: string;
+    title: string;
+    price: number;
+    available: boolean;
+}
+
+interface CheckoutLineItem {
+    variantId: string;
+    quantity: number;
+}
+
+interface Checkout {
+    id: string;
+    webUrl: string;
+    lineItems: any[];
+    totalPriceV2: PriceRange;
+}
+
+interface CustomerAccessToken {
+    accessToken: string;
+    expiresAt: string;
+}
+
+interface Customer {
+    id: string;
+}
+
+interface Order {
+    id: string;
+    orderNumber: number;
+    date: string;
+    total: number;
+    status: string;
+    items: OrderItem[];
+}
+
+interface OrderItem {
+    title: string;
+    quantity: number;
+    price: number;
+    image?: string;
+}
+
+// Fetch all excursions (products)
+export const getAllExcursions = async (): Promise<Product[]> => {
+    const query = `
+    query GetProducts {
+      products(first: 20) {
+        edges {
+          node {
+            id
+            title
+            description
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
+              minVariantPrice {
+                amount
+              }
+            }
+            images(first: 5) {
+              edges {
+                node {
+                  url
+                  altText
+                }
+              }
+            }
+            metafields(identifiers: [
+              {namespace: "custom", key: "location"},
+              {namespace: "custom", key: "duration"},
+              {namespace: "custom", key: "rating"},
+              {namespace: "custom", key: "reviews_count"},
+              {namespace: "custom", key: "group_size"}
+            ]) {
+              key
+              value
+            }
+          }
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(query);
+    return data.products.edges.map((edge: any) => ({
+        id: edge.node.id,
+        title: edge.node.title,
+        description: edge.node.description,
+        price: parseFloat(edge.node.priceRange.minVariantPrice.amount),
+        originalPrice: edge.node.compareAtPriceRange?.minVariantPrice?.amount
+            ? parseFloat(edge.node.compareAtPriceRange.minVariantPrice.amount)
+            : null,
+        images: edge.node.images.edges.map((img: any) => img.node.url),
+        location: edge.node.metafields?.find((m: Metafield) => m?.key === 'location')?.value || '',
+        duration: edge.node.metafields?.find((m: Metafield) => m?.key === 'duration')?.value || '',
+        rating: parseFloat(edge.node.metafields?.find((m: Metafield) => m?.key === 'rating')?.value || '0'),
+        reviewsCount: parseInt(edge.node.metafields?.find((m: Metafield) => m?.key === 'reviews_count')?.value || '0'),
+        groupSize: edge.node.metafields?.find((m: Metafield) => m?.key === 'group_size')?.value || '',
+    }));
+};
+
+// Fetch single excursion by ID
+export const getExcursionById = async (productId: string): Promise<ProductDetail> => {
+    const query = `
+    query GetProduct($id: ID!) {
+      product(id: $id) {
+        id
+        title
+        description
+        descriptionHtml
+        priceRange {
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        compareAtPriceRange {
+          minVariantPrice {
+            amount
+          }
+        }
+        images(first: 10) {
+          edges {
+            node {
+              url
+              altText
+            }
+          }
+        }
+        variants(first: 10) {
+          edges {
+            node {
+              id
+              title
+              priceV2 {
+                amount
+                currencyCode
+              }
+              availableForSale
+            }
+          }
+        }
+        metafields(identifiers: [
+          {namespace: "custom", key: "location"},
+          {namespace: "custom", key: "duration"},
+          {namespace: "custom", key: "rating"},
+          {namespace: "custom", key: "reviews_count"},
+          {namespace: "custom", key: "group_size"},
+          {namespace: "custom", key: "highlights"},
+          {namespace: "custom", key: "whats_included"}
+        ]) {
+          key
+          value
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(query, { variables: { id: productId } });
+    const product = data.product;
+
+    return {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        descriptionHtml: product.descriptionHtml,
+        price: parseFloat(product.priceRange.minVariantPrice.amount),
+        originalPrice: product.compareAtPriceRange?.minVariantPrice?.amount
+            ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
+            : null,
+        images: product.images.edges.map((img: any) => img.node.url),
+        variants: product.variants.edges.map((v: any) => ({
+            id: v.node.id,
+            title: v.node.title,
+            price: parseFloat(v.node.priceV2.amount),
+            available: v.node.availableForSale
+        })),
+        location: product.metafields?.find((m: Metafield) => m?.key === 'location')?.value || '',
+        duration: product.metafields?.find((m: Metafield) => m?.key === 'duration')?.value || '',
+        rating: parseFloat(product.metafields?.find((m: Metafield) => m?.key === 'rating')?.value || '0'),
+        reviewsCount: parseInt(product.metafields?.find((m: Metafield) => m?.key === 'reviews_count')?.value || '0'),
+        groupSize: product.metafields?.find((m: Metafield) => m?.key === 'group_size')?.value || '',
+        highlights: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'highlights')?.value || '[]'),
+        whatsIncluded: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'whats_included')?.value || '[]'),
+    };
+};
+
+// Create checkout (cart)
+export const createCheckout = async (lineItems: CheckoutLineItem[]): Promise<Checkout> => {
+    const mutation = `
+    mutation CreateCheckout($input: CheckoutCreateInput!) {
+      checkoutCreate(input: $input) {
+        checkout {
+          id
+          webUrl
+          lineItems(first: 10) {
+            edges {
+              node {
+                title
+                quantity
+                variant {
+                  priceV2 {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+          totalPriceV2 {
+            amount
+            currencyCode
+          }
+        }
+        checkoutUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(mutation, {
+        variables: {
+            input: {
+                lineItems: lineItems
+            }
+        }
+    });
+
+    if (data.checkoutCreate.checkoutUserErrors.length > 0) {
+        throw new Error(data.checkoutCreate.checkoutUserErrors[0].message);
+    }
+
+    return data.checkoutCreate.checkout;
+};
+
+// Add items to existing checkout
+export const addToCheckout = async (checkoutId: string, lineItems: CheckoutLineItem[]): Promise<Checkout> => {
+    const mutation = `
+    mutation CheckoutLineItemsAdd($checkoutId: ID!, $lineItems: [CheckoutLineItemInput!]!) {
+      checkoutLineItemsAdd(checkoutId: $checkoutId, lineItems: $lineItems) {
+        checkout {
+          id
+          webUrl
+          lineItems(first: 10) {
+            edges {
+              node {
+                id
+                title
+                quantity
+                variant {
+                  priceV2 {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+          totalPriceV2 {
+            amount
+            currencyCode
+          }
+        }
+        checkoutUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(mutation, {
+        variables: {
+            checkoutId,
+            lineItems
+        }
+    });
+
+    return data.checkoutLineItemsAdd.checkout;
+};
+
+// Customer login
+export const customerLogin = async (email: string, password: string): Promise<CustomerAccessToken> => {
+    const mutation = `
+    mutation CustomerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
+      customerAccessTokenCreate(input: $input) {
+        customerAccessToken {
+          accessToken
+          expiresAt
+        }
+        customerUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(mutation, {
+        variables: {
+            input: {
+                email,
+                password
+            }
+        }
+    });
+
+    if (data.customerAccessTokenCreate.customerUserErrors.length > 0) {
+        throw new Error(data.customerAccessTokenCreate.customerUserErrors[0].message);
+    }
+
+    return data.customerAccessTokenCreate.customerAccessToken;
+};
+
+// Get customer orders (bookings)
+export const getCustomerOrders = async (customerAccessToken: string | any): Promise<Order[]> => {
+    const query = `
+    query GetCustomerOrders($customerAccessToken: String!) {
+      customer(customerAccessToken: $customerAccessToken) {
+        orders(first: 20) {
+          edges {
+            node {
+              id
+              orderNumber
+              processedAt
+              totalPriceV2 {
+                amount
+                currencyCode
+              }
+              fulfillmentStatus
+              lineItems(first: 10) {
+                edges {
+                  node {
+                    title
+                    quantity
+                    variant {
+                      priceV2 {
+                        amount
+                      }
+                      image {
+                        url
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(query, {
+        variables: { customerAccessToken }
+    });
+
+    return data.customer.orders.edges.map((edge: any) => ({
+        id: edge.node.id,
+        orderNumber: edge.node.orderNumber,
+        date: edge.node.processedAt,
+        total: parseFloat(edge.node.totalPriceV2.amount),
+        status: edge.node.fulfillmentStatus,
+        items: edge.node.lineItems.edges.map((item: any) => ({
+            title: item.node.title,
+            quantity: item.node.quantity,
+            price: parseFloat(item.node.variant.priceV2.amount),
+            image: item.node.variant.image?.url
+        }))
+    }));
+};
+
+// Customer registration
+export const customerRegister = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string
+): Promise<Customer> => {
+    const mutation = `
+    mutation CustomerCreate($input: CustomerCreateInput!) {
+      customerCreate(input: $input) {
+        customer {
+          id
+        }
+        customerUserErrors {
+          message
+          field
+        }
+      }
+    }
+  `;
+
+    const { data } = await client.request(mutation, {
+        variables: {
+            input: {
+                email,
+                password,
+                firstName,
+                lastName,
+                acceptsMarketing: false
+            }
+        }
+    });
+
+    if (data.customerCreate.customerUserErrors.length > 0) {
+        throw new Error(data.customerCreate.customerUserErrors[0].message);
+    }
+
+    return data.customerCreate.customer;
+};
