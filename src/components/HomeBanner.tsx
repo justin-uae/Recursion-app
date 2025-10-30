@@ -1,63 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getCollectionsWithProducts } from '../services/shopifyService';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+    const [bestCitiesToVisit, setBestCitiesToVisit] = useState<any[]>([]);
 
-    const cities = [
-        {
-            name: "Abu Dhabi",
-            image: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=400&q=80"
-        },
-        {
-            name: "Dubai City",
-            image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=80"
-        },
-        {
-            name: "Ras al Khaimah",
-            image: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?w=400&q=80"
-        },
-        {
-            name: "Jeddah",
-            image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80"
-        },
-        {
-            name: "Muscat",
-            image: "https://d1i3enf1i5tb1f.cloudfront.net/Tour-Images/Final/Burj-Khalifa-At-The-Top-Tickets-18/1759833985818_S.jpg"
-        },
-        {
-            name: "Riyadh",
-            image: "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=400&q=80"
-        },
-        {
-            name: "Singapore City",
-            image: "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&q=80"
-        },
-        {
-            name: "Al Ula",
-            image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80"
-        }
-    ];
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const collections = await getCollectionsWithProducts();
 
-    const bestCitiesToVisit = [
-        {
-            name: "Mecca",
-            image: "https://d1i3enf1i5tb1f.cloudfront.net/Tour-Images/Final/Burj-Khalifa-At-The-Top-Tickets-18/1759833985818_S.jpg"
-        },
-        {
-            name: "Dubai",
-            image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80"
-        },
-        {
-            name: "Cairo",
-            image: "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=600&q=80"
-        },
-        {
-            name: "Istanbul",
-            image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=600&q=80"
-        }
-    ];
+                const bestCitiesCollection = collections.find(
+                    (col: any) => col.handle === "best-cities-to-visit"
+                );
+
+                if (!bestCitiesCollection) {
+                    console.warn("No 'Best Cities to Visit' collection found");
+                    return;
+                }
+
+                // Map products into cities array
+                const cityList = bestCitiesCollection.products.map((product: any) => ({
+                    title: product.title,
+                    image: product.image,
+                    location: product.location,
+                }));
+
+                setBestCitiesToVisit(cityList);
+            } catch (error) {
+                console.error("Error fetching city collections:", error);
+            }
+        };
+
+        fetchCities();
+    }, []);
 
     return (
         <div className="relative">
@@ -120,23 +98,23 @@ export default function HomepageBanner() {
                         {showLocationDropdown && (
                             <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-2xl p-4 max-h-96 overflow-y-auto z-50 border border-gray-200">
                                 <div className="grid grid-cols-2 gap-3">
-                                    {cities.map((city, index) => (
+                                    {bestCitiesToVisit?.map((city, index) => (
                                         <button
                                             key={index}
                                             onClick={() => {
-                                                setSelectedLocation(city.name);
+                                                setSelectedLocation(city?.location);
                                                 setShowLocationDropdown(false);
                                             }}
                                             className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                                         >
                                             <div className="w-full h-24 rounded-lg overflow-hidden">
                                                 <img
-                                                    src={city.image}
-                                                    alt={city.name}
+                                                    src={city?.image}
+                                                    alt={city.location}
                                                     className="w-full h-full object-cover"
                                                 />
                                             </div>
-                                            <span className="text-sm font-medium text-gray-700">{city.name}</span>
+                                            <span className="text-sm font-medium text-gray-700">{city?.location}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -174,15 +152,8 @@ export default function HomepageBanner() {
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                 <div className="absolute bottom-4 left-4">
-                                    <h3 className="text-white text-2xl font-bold">{city.name}</h3>
+                                    <h3 className="text-white text-2xl font-bold">{city?.location}</h3>
                                 </div>
-                                {index === 2 && (
-                                    <div className="absolute top-4 right-4 bg-blue-500 text-white rounded-full p-2">
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 3.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM2 10a8 8 0 1116 0 8 8 0 01-16 0z" />
-                                        </svg>
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </div>

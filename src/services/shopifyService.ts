@@ -76,6 +76,115 @@ interface OrderItem {
   image?: string;
 }
 
+export const getAllCityCollections = async (): Promise<{
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  handle: string;
+}[]> => {
+  const query = `
+    query GetCollections {
+      collections(first: 20) {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            image {
+              url
+              altText
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const { data } = await client.request(query);
+
+  return data?.collections?.edges?.map((edge: any) => ({
+    id: edge.node.id,
+    title: edge.node.title,
+    description: edge.node.description,
+    image: edge.node.image?.url || "",
+    handle: edge.node.handle,
+  }));
+};
+
+export const getCollectionsWithProducts = async () => {
+  const query = `
+    query GetCollectionsWithProducts {
+      collections(first: 10) {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            image {
+              url
+              altText
+            }
+            products(first: 20) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                  images(first: 1) {
+                    edges {
+                      node {
+                        url
+                        altText
+                      }
+                    }
+                  }
+                  metafields(identifiers: [
+                    {namespace: "custom", key: "location"}
+                  ]) {
+                    key
+                    value
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const { data } = await client.request(query);
+
+    if (!data?.collections?.edges) return [];
+
+    return data.collections.edges.map((collectionEdge: any) => {
+      const collection = collectionEdge.node;
+      return {
+        id: collection.id,
+        title: collection.title,
+        handle: collection.handle,
+        description: collection.description,
+        image: collection.image?.url || "",
+        products: collection.products?.edges?.map((productEdge: any) => ({
+          id: productEdge.node.id,
+          title: productEdge.node.title,
+          image: productEdge.node.images?.edges[0]?.node?.url || "",
+          location:
+            productEdge.node.metafields?.find((m: any) => m.key === "location")
+              ?.value || "",
+        })),
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching collections with products:", error);
+    return [];
+  }
+};
+
 // Fetch all excursions (products)
 export const getAllExcursions = async (): Promise<Product[]> => {
   const query = `

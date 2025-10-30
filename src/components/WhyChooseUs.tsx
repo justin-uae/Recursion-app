@@ -1,4 +1,5 @@
 import { Shield, Award, Headphones, Wallet, Clock, Users, Star, Globe } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function WhyChooseUs() {
     const features = [
@@ -117,9 +118,11 @@ export default function WhyChooseUs() {
                         <button className="bg-white text-blue-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-full transition-colors">
                             Explore Tours
                         </button>
-                        <button className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold px-8 py-4 rounded-full transition-colors">
-                            Contact Us
-                        </button>
+                        <Link to={'/contact'}>
+                            <button className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold px-8 py-4 rounded-full transition-colors">
+                                Contact Us
+                            </button>
+                        </Link>
                     </div>
                 </div>
             </div>
