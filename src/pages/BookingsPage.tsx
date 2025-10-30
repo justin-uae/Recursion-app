@@ -13,8 +13,10 @@ export default function BookingsPage() {
         const fetchBookings = async () => {
             try {
                 setLoading(true);
-                const orders = await getCustomerOrders(accessToken);
-                setBookings(orders);
+                if (accessToken) {
+                    const orders = await getCustomerOrders(accessToken);
+                    setBookings(orders);
+                }
             } catch (err: any) {
                 setError(err.message);
             } finally {

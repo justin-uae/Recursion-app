@@ -30,7 +30,7 @@ export default function PopularTours() {
                 const data = await getAllExcursions();
                 console.log("data", data);
 
-                setTours(data.slice(0, 1)); // only take first 10
+                setTours(data.slice(0, 8)); // only take first 8
             } catch (error) {
                 console.error('Error fetching excursions:', error);
             } finally {

@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import BookingsPage from './pages/BookingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import CartPage from './pages/CartPage';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           />
 
           <Route path='/tours' element={<FallbackPage />} />
+          <Route path='/cart' element={<CartPage />} />
           <Route path='/transfers' element={<FallbackPage />} />
           <Route path='/services' element={<FallbackPage />} />
           <Route path='*' element={<FallbackPage />} />
