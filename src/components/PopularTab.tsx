@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Star, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAllExcursions } from '../services/shopifyService';
 import { Link, useNavigate } from 'react-router-dom';
@@ -22,15 +22,13 @@ export default function PopularTours() {
     const [tours, setTours] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Fetch excursions from Shopify
     useEffect(() => {
         const fetchExcursions = async () => {
             try {
                 const data = await getAllExcursions();
-                console.log("data", data);
-
-                setTours(data.slice(0, 8)); // only take first 8
+                setTours(data.slice(0, 10));
             } catch (error) {
                 console.error('Error fetching excursions:', error);
             } finally {
@@ -49,12 +47,19 @@ export default function PopularTours() {
     };
 
     const goToDetail = (productId: string) => {
-        console.log("productId", productId);
         const encodedId = encodeURIComponent(productId);
         navigate(`/excursion/${encodedId}`);
-
     };
 
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = scrollRef.current.clientWidth * 0.8; // scroll 80% of visible area
+            scrollRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth',
+            });
+        }
+    };
 
     if (loading) {
         return (
@@ -71,20 +76,32 @@ export default function PopularTours() {
                 <div className="flex items-center justify-between mb-10">
                     <h2 className="text-4xl font-bold text-gray-900">Popular Tours</h2>
                     <div className="flex gap-2">
-                        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors"
+                        >
                             <ChevronLeft className="w-5 h-5 text-gray-700" />
                         </button>
-                        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors">
+                        <button
+                            onClick={() => scroll('right')}
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors"
+                        >
                             <ChevronRight className="w-5 h-5 text-gray-700" />
                         </button>
                     </div>
                 </div>
 
-                {/* Tours Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Tours Scrollable Row */}
+                <div
+                    ref={scrollRef}
+                    className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth"
+                    style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none' }}
+                >
                     {tours.map((tour) => (
-                        <div key={tour.id} className="group cursor-pointer"
-                            onClick={() => goToDetail(tour.id)} // Navigate on card click
+                        <div
+                            key={tour.id}
+                            className="group cursor-pointer min-w-[250px] md:min-w-[300px] lg:min-w-[280px] flex-shrink-0"
+                            onClick={() => goToDetail(tour.id)}
                         >
                             {/* Image */}
                             <div className="relative h-64 rounded-2xl overflow-hidden mb-4">
@@ -98,9 +115,8 @@ export default function PopularTours() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleFavorite(tour.id)
+                                        toggleFavorite(tour.id);
                                     }}
-
                                     className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors"
                                 >
                                     <Heart

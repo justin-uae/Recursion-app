@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Phone, Mail, MapPin, ChevronDown, LogOut, User as UserIcon, Calendar } from 'lucide-react';
+import { ShoppingCart, Menu, X, Phone, Mail, MapPin, LogOut, User as UserIcon, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/Cartcontext';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [cartCount] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
-    const [showToursDropdown, setShowToursDropdown] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     const { user, isAuthenticated, logout } = useAuth();
+    const { cartCount } = useCart();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -20,14 +20,6 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const tourCategories = [
-        { name: "Desert Safari", href: "/tours/desert-safari" },
-        { name: "City Tours", href: "/tours/city-tours" },
-        { name: "Water Activities", href: "/tours/water-activities" },
-        { name: "Adventure Sports", href: "/tours/adventure" },
-        { name: "Cultural Experiences", href: "/tours/cultural" },
-        { name: "Luxury Tours", href: "/tours/luxury" }
-    ];
 
     return (
         <>
@@ -84,34 +76,13 @@ export default function Navbar() {
                                 Home
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
                             </Link>
-
-                            {/* Tours Dropdown */}
-                            <div
-                                className="relative"
-                                onMouseEnter={() => setShowToursDropdown(true)}
-                                onMouseLeave={() => setShowToursDropdown(false)}
+                            <Link
+                                to="/excursions"
+                                className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group"
                             >
-                                <button className="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-1 group">
-                                    Tours & Experiences
-                                    <ChevronDown className={`w-4 h-4 transition-transform ${showToursDropdown ? 'rotate-180' : ''}`} />
-                                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
-                                </button>
-
-                                {showToursDropdown && (
-                                    <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 animate-fade-in">
-                                        {tourCategories.map((category, index) => (
-                                            <Link
-                                                key={index}
-                                                to={category.href}
-                                                className="block px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                                            >
-                                                {category.name}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
+                                Tours & Excursions
+                                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
+                            </Link>
                             <Link
                                 to="/about"
                                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group"
@@ -237,23 +208,13 @@ export default function Navbar() {
                                 >
                                     Home
                                 </Link>
-
-                                <div className="px-4 py-2">
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tours & Experiences</p>
-                                    <div className="space-y-1">
-                                        {tourCategories.map((category, index) => (
-                                            <Link
-                                                key={index}
-                                                to={category.href}
-                                                className="block text-gray-600 hover:text-blue-600 py-2 pl-4 transition-colors"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                {category.name}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-
+                                <Link
+                                    to="/excursions"
+                                    className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-colors"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Tours & Excursions
+                                </Link>
                                 <Link
                                     to="/about"
                                     className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-colors"

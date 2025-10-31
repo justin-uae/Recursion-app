@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCollectionsWithProducts } from '../services/shopifyService';
 
@@ -6,6 +6,7 @@ export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
     const [bestCitiesToVisit, setBestCitiesToVisit] = useState<any[]>([]);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -21,7 +22,6 @@ export default function HomepageBanner() {
                     return;
                 }
 
-                // Map products into cities array
                 const cityList = bestCitiesCollection.products.map((product: any) => ({
                     title: product.title,
                     image: product.image,
@@ -37,6 +37,23 @@ export default function HomepageBanner() {
         fetchCities();
     }, []);
 
+    // Scroll Functionality
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, clientWidth } = scrollContainerRef.current;
+            const scrollAmount = clientWidth * 0.8; // scroll by 80% of visible width
+            const newScrollPosition =
+                direction === 'left'
+                    ? scrollLeft - scrollAmount
+                    : scrollLeft + scrollAmount;
+
+            scrollContainerRef.current.scrollTo({
+                left: newScrollPosition,
+                behavior: 'smooth',
+            });
+        }
+    };
+
     return (
         <div className="relative">
             {/* Hero Banner */}
@@ -47,11 +64,9 @@ export default function HomepageBanner() {
                         alt="Jeddah"
                         className="w-full h-full object-cover"
                     />
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-teal-500/80 via-blue-900/30 to-purple-900/30"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
                 </div>
 
-                {/* Content */}
                 <div className="absolute inset-0 flex items-center">
                     <div className="max-w-7xl mx-auto px-8 w-full">
                         <div className="max-w-2xl">
@@ -71,7 +86,7 @@ export default function HomepageBanner() {
                     </div>
                 </div>
 
-                {/* Navigation Arrows for Hero */}
+                {/* Navigation Arrows */}
                 <button className="absolute right-20 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all">
                     <ChevronLeft className="w-6 h-6 text-gray-700" />
                 </button>
@@ -80,7 +95,7 @@ export default function HomepageBanner() {
                 </button>
             </div>
 
-            {/* Location Selector - Outside overflow container */}
+            {/* Location Selector */}
             <div className="relative -mt-8 z-50 px-4">
                 <div className="max-w-md mx-auto">
                     <div className="relative">
@@ -94,11 +109,14 @@ export default function HomepageBanner() {
                             </span>
                         </button>
 
-                        {/* Dropdown */}
                         {showLocationDropdown && (
                             <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-2xl p-4 max-h-96 overflow-y-auto z-50 border border-gray-200">
                                 <div className="grid grid-cols-2 gap-3">
-                                    {bestCitiesToVisit?.map((city, index) => (
+                                    {[
+                                        ...new Map(
+                                            bestCitiesToVisit?.map((city) => [city?.location, city])
+                                        ).values(), // 👈 ensures unique locations
+                                    ]?.map((city, index) => (
                                         <button
                                             key={index}
                                             onClick={() => {
@@ -130,20 +148,30 @@ export default function HomepageBanner() {
                     <div className="flex items-center justify-between mb-8">
                         <h2 className="text-3xl font-bold text-gray-900">Best Cities to Visit</h2>
                         <div className="flex gap-2">
-                            <button className="bg-white border-2 border-gray-300 rounded-full p-2 hover:border-gray-400 transition-colors">
+                            <button
+                                onClick={() => scroll('left')}
+                                className="bg-white border-2 border-gray-300 rounded-full p-2 hover:border-gray-400 transition-colors"
+                            >
                                 <ChevronLeft className="w-5 h-5 text-gray-700" />
                             </button>
-                            <button className="bg-white border-2 border-gray-300 rounded-full p-2 hover:border-gray-400 transition-colors">
+                            <button
+                                onClick={() => scroll('right')}
+                                className="bg-white border-2 border-gray-300 rounded-full p-2 hover:border-gray-400 transition-colors"
+                            >
                                 <ChevronRight className="w-5 h-5 text-gray-700" />
                             </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div
+                        ref={scrollContainerRef}
+                        className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
                         {bestCitiesToVisit.map((city, index) => (
                             <div
                                 key={index}
-                                className="relative rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
+                                className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
                             >
                                 <img
                                     src={`${city?.image}?width=400&height=300&crop=center`}
