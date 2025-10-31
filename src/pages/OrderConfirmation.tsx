@@ -1,4 +1,5 @@
 import { CheckCircle, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function OrderConfirmation() {
   const order = JSON.parse(localStorage.getItem("currentOrder") || "{}");
@@ -30,12 +31,12 @@ export default function OrderConfirmation() {
           </p>
         </div>
 
-        <a
-          href="/excursions"
+        <Link
           className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-8 py-3 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
+          to={"/excursions"}
         >
           Continue Exploring <ArrowRight className="w-5 h-5 ml-2" />
-        </a>
+        </Link>
       </div>
     </div>
   );

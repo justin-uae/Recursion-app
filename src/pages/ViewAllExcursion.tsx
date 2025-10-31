@@ -197,7 +197,7 @@ const ViewAllExcursion = () => {
 // Hero Section Component
 const HeroSection = ({ searchQuery, setSearchQuery, totalCount }: any) => (
     <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 text-white py-12 md:py-16">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 text-center">
             <h1 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4">
                 Explore Dubai & UAE
             </h1>
@@ -205,7 +205,7 @@ const HeroSection = ({ searchQuery, setSearchQuery, totalCount }: any) => (
                 Discover {totalCount}+ unforgettable experiences
             </p>
 
-            <div className="max-w-2xl">
+            <div className="w-full">
                 <div className="relative">
                     <svg
                         className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"

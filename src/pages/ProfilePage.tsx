@@ -1,5 +1,6 @@
 import { Mail, Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function ProfilePage() {
     const { user } = useAuth();
@@ -82,12 +83,12 @@ export default function ProfilePage() {
 
                 {/* Back to Home */}
                 <div className="text-center mt-8">
-                    <a
-                        href="/"
+                    <Link
                         className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-full transition-all transform hover:scale-105"
+                        to={"/"}
                     >
                         Go to Home
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

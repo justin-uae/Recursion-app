@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ArrowRight, Calendar, Users, CheckCircle, Loader } from 'lucide-react';
 import { useCart } from '../context/Cartcontext';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const CartPage: React.FC = () => {
+    const navigate = useNavigate();
     const { cart, clearCart } = useCart();
     const [submitted, setSubmitted] = useState(false);
     const [processing, setProcessing] = useState(false)
@@ -54,7 +56,7 @@ export const CartPage: React.FC = () => {
             setSubmitted(true);
 
             setTimeout(() => {
-                window.location.href = "/order-confirmation";
+                navigate('/order-confirmation');
             }, 1000);
         }, 2000);
     };
@@ -96,12 +98,13 @@ export const CartPage: React.FC = () => {
                     </div>
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Cart is Empty</h1>
                     <p className="text-gray-500 mb-6">Add your favorite experiences to start exploring!</p>
-                    <a
-                        href="/excursions"
+
+                    <Link
                         className="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full hover:bg-blue-700 transition-all shadow-md"
+                        to={"/excursions"}
                     >
-                        Browse Excursions
-                    </a>
+                        Browse Excursions <ArrowRight className="w-5 h-5 ml-2" />
+                    </Link>
                 </div>
             </div>
         );
