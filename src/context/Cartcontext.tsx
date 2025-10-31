@@ -59,7 +59,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     const savedCheckout = localStorage.getItem('checkout');
-    
+
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
@@ -79,12 +79,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Add item to cart
   const addToCart = async (item: CartItem): Promise<void> => {
     setLoading(true);
-    
+
     try {
       // Check if item already exists in cart (same variant and same date)
       const existingItemIndex = cart.findIndex(
-        (cartItem) => 
-          cartItem.variantId === item.variantId && 
+        (cartItem) =>
+          cartItem.variantId === item.variantId &&
           cartItem.customAttributes?.date === item.customAttributes?.date
       );
 
@@ -158,7 +158,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const removeFromCart = (variantId: string): void => {
     const updatedCart = cart.filter((item) => item.variantId !== variantId);
     setCart(updatedCart);
-    
+
     // If cart is empty, clear checkout
     if (updatedCart.length === 0) {
       clearCart();

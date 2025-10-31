@@ -1,187 +1,266 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Trash2, ShoppingBag, ArrowRight, Calendar, Users, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Calendar, Users, CheckCircle, Loader } from 'lucide-react';
 import { useCart } from '../context/Cartcontext';
 
-const CartPage: React.FC = () => {
-    const { cart, cartCount, removeFromCart, proceedToCheckout, loading } = useCart();
+export const CartPage: React.FC = () => {
+    const { cart, clearCart } = useCart();
+    const [submitted, setSubmitted] = useState(false);
+    const [processing, setProcessing] = useState(false)
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+    });
 
-    const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-    const tax = subtotal * 0.05;
-    const total = subtotal + tax;
+    const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const tax = totalPrice * 0.05;
+    const finalTotal = totalPrice + tax;
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!formData.name || !formData.email || !formData.phone) {
+            alert('Please fill in all fields');
+            return;
+        }
+        setProcessing(true);
+
+        const order = {
+            orderNumber: `ORD-${Date.now()}`,
+            date: new Date().toLocaleDateString(),
+            time: new Date().toLocaleTimeString(),
+            customer: formData,
+            items: cart,
+            subtotal: totalPrice,
+            tax,
+            total: finalTotal,
+            paymentMethod: 'Cash on Delivery',
+            status: 'Confirmed',
+        };
+
+        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        orders.push(order);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        localStorage.setItem('currentOrder', JSON.stringify(order));
+
+        setTimeout(() => {
+            clearCart();
+            setProcessing(false);
+            setSubmitted(true);
+
+            setTimeout(() => {
+                window.location.href = "/order-confirmation";
+            }, 1000);
+        }, 2000);
+    };
+
+    if (processing) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-center p-6">
+                <div>
+                    <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-6" />
+                    <h1 className="text-2xl font-semibold text-gray-800 mb-2">
+                        Processing Your Booking...
+                    </h1>
+                    <p className="text-gray-500">Please wait a moment while we confirm your order.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (submitted) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="mb-6 animate-bounce">
+                        <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-3">Booking Confirmed! 🎉</h1>
+                    <p className="text-gray-600">We’ll reach out soon with confirmation details.</p>
+                </div>
+            </div>
+        );
+    }
 
     if (cart.length === 0) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center px-4 py-12">
-                <div className="text-center max-w-md">
-                    <div className="w-24 h-24 bg-white shadow-md rounded-full flex items-center justify-center mx-auto mb-6">
-                        <ShoppingBag className="w-12 h-12 text-gray-400" />
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-center p-6">
+                <div>
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                        <span className="text-5xl">🛍️</span>
                     </div>
-                    <h2 className="text-3xl font-extrabold text-gray-900 mb-3">Your Cart is Empty</h2>
-                    <p className="text-gray-600 mb-8 leading-relaxed">
-                        Looks like you haven’t added any tours yet. Start exploring our amazing experiences!
-                    </p>
-                    <Link
-                        to="/"
-                        className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-full shadow-md transition-all"
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Cart is Empty</h1>
+                    <p className="text-gray-500 mb-6">Add your favorite experiences to start exploring!</p>
+                    <a
+                        href="/excursions"
+                        className="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full hover:bg-blue-700 transition-all shadow-md"
                     >
-                        Browse Tours
-                    </Link>
+                        Browse Excursions
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    if (submitted) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="mb-6 animate-bounce">
+                        <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-3">Booking Confirmed! 🎉</h1>
+                    <p className="text-gray-600">We’ll reach out soon with confirmation details.</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white py-12 px-4">
+            <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="mb-10 text-center lg:text-left">
-                    <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-3">Your Cart</h1>
-                    <p className="text-gray-600 text-sm sm:text-base">
-                        {cartCount} {cartCount === 1 ? 'item' : 'items'} in your cart
-                    </p>
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Complete Your Booking</h1>
+                    <p className="text-gray-600 text-lg">Just a few details away from your adventure</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Cart Items */}
-                    <div className="lg:col-span-2 space-y-6">
-                        {cart.map((item, index) => (
-                            <div
-                                key={`${item.variantId}-${index}`}
-                                className="bg-white rounded-3xl shadow-md p-5 sm:p-6 flex flex-col sm:flex-row gap-6 hover:shadow-lg transition-all"
-                            >
-                                {/* Image */}
-                                {item.image && (
-                                    <div className="w-full sm:w-32 h-48 sm:h-32 rounded-2xl overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
-                                        <img
-                                            src={`${item.image}?width=300&height=300&crop=center`}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Form */}
+                    <div className="lg:col-span-2">
+                        <form
+                            onSubmit={handleSubmit}
+                            className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
+                        >
+                            <h2 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3">
+                                🧾 Your Details
+                            </h2>
 
-                                {/* Details */}
-                                <div className="flex-1 flex flex-col justify-between">
-                                    <div>
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-
-                                        {item.customAttributes && (
-                                            <div className="space-y-2 mb-3 text-sm text-gray-600">
-                                                {item.customAttributes.date && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-4 h-4" />
-                                                        <span>
-                                                            Date: <span className="font-semibold">{item.customAttributes.date}</span>
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                <div className="flex flex-wrap items-center gap-4">
-                                                    {item.customAttributes.adults && (
-                                                        <div className="flex items-center gap-1">
-                                                            <Users className="w-4 h-4" />
-                                                            <span>
-                                                                Adults: <span className="font-semibold">{item.customAttributes.adults}</span>
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {item.customAttributes.children && parseInt(item.customAttributes.children) > 0 && (
-                                                        <div className="flex items-center gap-1">
-                                                            <User className="w-4 h-4" />
-                                                            <span>
-                                                                Children: <span className="font-semibold">{item.customAttributes.children}</span>
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between mt-4">
-                                        <div>
-                                            <p className="text-sm text-gray-500">Price per person</p>
-                                            <p className="text-lg font-bold text-blue-600">${item.price}</p>
-                                        </div>
-
-                                        <button
-                                            onClick={() => removeFromCart(item.variantId)}
-                                            disabled={loading}
-                                            className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                            Remove
-                                        </button>
-                                    </div>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-gray-700 text-sm mb-2">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        placeholder="John Doe"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
                                 </div>
 
-                                {/* Item Total */}
-                                <div className="text-right hidden sm:block">
-                                    <p className="text-sm text-gray-500 mb-1">Subtotal</p>
-                                    <p className="text-sm text-gray-400 mb-2">
-                                        ${item.price} × {item.quantity}
-                                    </p>
-                                    <p className="text-xl font-bold text-gray-900">
-                                        ${(item.price * item.quantity).toFixed(2)}
-                                    </p>
+                                <div>
+                                    <label className="block text-gray-700 text-sm mb-2">Email *</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="your@email.com"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-gray-700 text-sm mb-2">Phone *</label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        placeholder="+971 50 123 4567"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    />
                                 </div>
                             </div>
-                        ))}
-                    </div>
 
-                    {/* Order Summary */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-3xl shadow-md p-6 sticky top-24">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Order Summary</h2>
-
-                            <div className="space-y-4 mb-6">
-                                <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                                    <span>Subtotal</span>
-                                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                                    <span>Tax (5% VAT)</span>
-                                    <span className="font-semibold">${tax.toFixed(2)}</span>
-                                </div>
-                                <div className="border-t pt-4 flex justify-between text-xl font-bold text-gray-900">
-                                    <span>Total</span>
-                                    <span>${total.toFixed(2)}</span>
-                                </div>
+                            {/* Payment Info */}
+                            <div className="mt-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6">
+                                <h3 className="text-lg font-semibold text-blue-700 mb-2">💰 Payment Method</h3>
+                                <p className="text-gray-600 text-sm leading-relaxed">
+                                    ✓ <strong>Cash on Delivery</strong> <br />
+                                    ✓ Pay <strong>AED {finalTotal.toFixed(2)}</strong> when we meet<br />
+                                    ✓ Confirmation will be sent to your email
+                                </p>
                             </div>
 
                             <button
-                                onClick={proceedToCheckout}
-                                disabled={loading}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 rounded-2xl shadow-md transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
+                                type="submit"
+                                className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-3 text-lg"
                             >
-                                {loading ? 'Processing...' : (
-                                    <>
-                                        Proceed to Checkout
-                                        <ArrowRight className="w-5 h-5" />
-                                    </>
-                                )}
+                                Confirm Booking <ArrowRight className="w-6 h-6" />
                             </button>
+                        </form>
+                    </div>
 
-                            <Link
-                                to="/"
-                                className="block text-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                            >
-                                Continue Shopping
-                            </Link>
+                    {/* Sidebar */}
+                    <div className="lg:col-span-1">
+                        <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 sticky top-6">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-6">📋 Order Summary</h3>
 
-                            <div className="mt-6 pt-6 border-t text-sm text-gray-600">
-                                <div className="flex items-center gap-2">
-                                    <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                            clipRule="evenodd"
-                                        />
-                                    </svg>
-                                    Secure checkout powered by Shopify
+                            <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
+                                {cart.map((item) => (
+                                    <div
+                                        key={item.variantId}
+                                        className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-gray-200"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h4 className="font-semibold text-gray-800 mb-1">{item.title}</h4>
+                                                <p className="text-gray-500 text-sm">× {item.quantity}</p>
+                                            </div>
+                                            <p className="text-blue-600 font-semibold">
+                                                AED {(item.price * item.quantity).toFixed(2)}
+                                            </p>
+                                        </div>
+
+                                        <div className="border-t border-gray-200 mt-2 pt-2 text-sm text-gray-600">
+                                            {item.customAttributes?.date && (
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4 text-blue-400" />
+                                                    <span>
+                                                        {new Date(item.customAttributes.date).toLocaleDateString('en-US', {
+                                                            weekday: 'short',
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {item.customAttributes?.totalGuests && (
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-purple-400" />
+                                                    <span>
+                                                        {item.customAttributes.totalGuests}{' '}
+                                                        {item.customAttributes.totalGuests === '1' ? 'guest' : 'guests'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-gray-200">
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span>AED {totalPrice.toFixed(2)}</span>
                                 </div>
-                                <p className="mt-3 text-xs text-gray-500">Free cancellation up to 24 hours before</p>
+                                <div className="flex justify-between text-gray-600">
+                                    <span>VAT (5%)</span>
+                                    <span>AED {tax.toFixed(2)}</span>
+                                </div>
+                                <div className="border-t border-gray-300 pt-3 flex justify-between items-center">
+                                    <span className="text-lg font-bold text-gray-800">Total</span>
+                                    <span className="text-2xl font-extrabold text-blue-600">
+                                        AED {finalTotal.toFixed(2)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

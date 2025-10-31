@@ -27,7 +27,6 @@ const ViewAllExcursion = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortBy, setSortBy] = useState('rating');
 
-    // Categories - you can customize these based on your product types/tags
     const categories = [
         { value: 'all', label: 'All Tours' },
         { value: 'desert', label: 'Desert Safari' },
@@ -439,8 +438,10 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
                         </div>
                         <p className="text-xs text-gray-500">per person</p>
                     </div>
-                    <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg">
-                        Book Now
+                    <button className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg"
+                        onClick={() => goToDetail(excursion.id)}
+                    >
+                        View Detail
                     </button>
                 </div>
             </div>

@@ -14,6 +14,7 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const BookingsPage = lazy(() => import('./pages/BookingsPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const ViewAllExcursion = lazy(() => import('./pages/ViewAllExcursion'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
@@ -44,6 +45,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/order-confirmation"
+            element={
+              <ProtectedRoute>
+                <OrderConfirmation />
               </ProtectedRoute>
             }
           />
