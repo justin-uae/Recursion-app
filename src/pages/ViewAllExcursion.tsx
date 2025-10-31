@@ -29,12 +29,12 @@ const ViewAllExcursion = () => {
 
     // Categories - you can customize these based on your product types/tags
     const categories = [
-        { value: 'all', label: 'All Tours', icon: '🌍' },
-        { value: 'desert', label: 'Desert Safari', icon: '🏜️' },
-        { value: 'city', label: 'City Tours', icon: '🏙️' },
-        { value: 'water', label: 'Water Activities', icon: '🌊' },
-        { value: 'adventure', label: 'Adventure', icon: '🎿' },
-        { value: 'cultural', label: 'Cultural', icon: '🕌' },
+        { value: 'all', label: 'All Tours' },
+        { value: 'desert', label: 'Desert Safari' },
+        { value: 'city', label: 'City Tours' },
+        { value: 'water', label: 'Water Activities' },
+        { value: 'adventure', label: 'Adventure' },
+        { value: 'cultural', label: 'Cultural' },
     ];
 
     // Fetch excursions from Shopify
@@ -259,7 +259,7 @@ const FilterSidebar = ({
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="w-4 h-4 text-blue-600"
                     />
-                    <span className="ml-3 text-gray-700">{cat.icon} {cat.label}</span>
+                    <span className="ml-3 text-gray-700">{cat.label}</span>
                 </label>
             ))}
         </FilterSection>
