@@ -165,7 +165,7 @@ export default function ItemDetailpage() {
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Link to="/" className="hover:text-blue-600">Home</Link>
                         <span> / </span>
-                        <Link to="/" className="hover:text-blue-600">Excursion</Link>
+                        <Link to="/excursions" className="hover:text-blue-600">Excursions</Link>
                         <span> / </span>
                         <span className="text-gray-900">{excursion.title}</span>
                     </div>
@@ -210,8 +210,8 @@ export default function ItemDetailpage() {
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
                                         className={`relative w-20 h-20 rounded-lg overflow-hidden ${index === currentImageIndex
-                                                ? 'ring-2 ring-blue-600'
-                                                : 'opacity-60 hover:opacity-100'
+                                            ? 'ring-2 ring-blue-600'
+                                            : 'opacity-60 hover:opacity-100'
                                             } transition-all`}
                                     >
                                         <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />

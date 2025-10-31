@@ -1,22 +1,26 @@
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import ExcursionsDubaiHero from './components/ExcursionsDubaiHero'
-import Footer from './components/Footer';
-import ItemDetailpage from './components/ItemDetailpage';
-import Navbar from './components/Navbar';
-import ContactUsPage from './components/ContactUs';
-import FallbackPage from './components/FallBackPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage';
-import BookingsPage from './pages/BookingsPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import CartPage from './pages/CartPage';
+import { BrandedFallback } from './components/LoadingFallback';
+
+const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
+const Footer = lazy(() => import('./components/Footer'));
+const ItemDetailpage = lazy(() => import('./components/ItemDetailpage'));
+const Navbar = lazy(() => import('./components/Navbar'));
+const ContactUsPage = lazy(() => import('./components/ContactUs'));
+const FallbackPage = lazy(() => import('./components/FallBackPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const ViewAllExcursion = lazy(() => import('./pages/ViewAllExcursion'))
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 function App() {
   return (
-    <>
-      <BrowserRouter>
+    <BrowserRouter>
+      <Suspense fallback={<BrandedFallback />}>
         <Navbar />
         <Routes>
           <Route path='/' element={<ExcursionsDubaiHero />} />
@@ -24,6 +28,7 @@ function App() {
           <Route path='/login' element={<LoginPage />} />
           <Route path='/register' element={<RegisterPage />} />
           <Route path='/about' element={<FallbackPage />} />
+          <Route path='/excursions' element={<ViewAllExcursion />} />
           <Route path='/excursion/:id' element={<ItemDetailpage />} />
 
           <Route
@@ -50,10 +55,9 @@ function App() {
           <Route path='*' element={<FallbackPage />} />
         </Routes>
         <Footer />
-      </BrowserRouter>
-    </>
-
-  )
+      </Suspense>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

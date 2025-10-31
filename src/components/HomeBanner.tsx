@@ -109,7 +109,7 @@ export default function HomepageBanner() {
                                         >
                                             <div className="w-full h-24 rounded-lg overflow-hidden">
                                                 <img
-                                                    src={city?.image}
+                                                    src={`${city?.image}?width=400&height=300&crop=center`}
                                                     alt={city.location}
                                                     className="w-full h-full object-cover"
                                                 />
@@ -146,7 +146,7 @@ export default function HomepageBanner() {
                                 className="relative rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
                             >
                                 <img
-                                    src={city.image}
+                                    src={`${city?.image}?width=400&height=300&crop=center`}
                                     alt={city.name}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 />

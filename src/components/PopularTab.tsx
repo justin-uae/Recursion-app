@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Star, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAllExcursions } from '../services/shopifyService';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Product {
     id: string;
@@ -89,7 +89,7 @@ export default function PopularTours() {
                             {/* Image */}
                             <div className="relative h-64 rounded-2xl overflow-hidden mb-4">
                                 <img
-                                    src={tour.images[0]}
+                                    src={`${tour.images[0]}?width=600&height=500&crop=center`}
                                     alt={tour.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
@@ -148,9 +148,11 @@ export default function PopularTours() {
 
                 {/* View All Button */}
                 <div className="text-center mt-12">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full transition-colors">
-                        View All Tours
-                    </button>
+                    <Link to={"/excursions"}>
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full transition-colors">
+                            View All Tours
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
