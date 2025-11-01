@@ -1,44 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { clearError, loginUser } from '../slices/authSlice';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
 
-    const { login } = useAuth();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Get auth state from Redux
+    const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
     // Redirect to the page user was trying to access, or home
     const from = location.state?.from?.pathname || '/';
 
-    const handleSubmit = async (e: any) => {
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, navigate, from]);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
 
         // Basic validation
         if (!email || !password) {
-            setError('Please fill in all fields');
-            setLoading(false);
             return;
         }
 
         // Attempt login
-        const result = await login(email, password);
+        const result = await dispatch(loginUser({ email, password }));
 
-        if (result.success) {
+        // Check if login was successful
+        if (result.meta.requestStatus === 'fulfilled') {
             navigate(from, { replace: true });
-        } else {
-            setError(result.error || 'Login failed. Please check your credentials.');
         }
+    };
 
-        setLoading(false);
+    const handleClearError = () => {
+        dispatch(clearError());
     };
 
     return (
@@ -58,8 +64,15 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Error Message */}
                         {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-                                {error}
+                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
+                                <span>{error}</span>
+                                <button
+                                    type="button"
+                                    onClick={handleClearError}
+                                    className="text-red-600 hover:text-red-800 font-bold"
+                                >
+                                    ×
+                                </button>
                             </div>
                         )}
 
@@ -79,6 +92,7 @@ export default function LoginPage() {
                                     className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="your@email.com"
                                     required
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -99,11 +113,13 @@ export default function LoginPage() {
                                     className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter your password"
                                     required
+                                    disabled={loading}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                    disabled={loading}
                                 >
                                     {showPassword ? (
                                         <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600" />

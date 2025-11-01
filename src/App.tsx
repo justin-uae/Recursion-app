@@ -1,7 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 import { BrandedFallback } from './components/LoadingFallback';
+import { initializeAuth } from './slices/authSlice';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -19,6 +21,12 @@ const ViewAllExcursion = lazy(() => import('./pages/ViewAllExcursion'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(initializeAuth() as any);
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <Suspense fallback={<BrandedFallback />}>

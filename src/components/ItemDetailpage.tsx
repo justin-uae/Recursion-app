@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Heart, Share2, MapPin, Clock, Users, Calendar, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getExcursionById } from '../services/shopifyService';
-import { useCart } from '../context/Cartcontext';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { fetchExcursionById } from '../slices/productsSlice';
+import { addToCartAsync } from '../slices/cartSlice';
 
 export default function ItemDetailpage() {
     const { id: encodedId } = useParams<{ id: string }>();
+    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { addToCart } = useCart();
+
+    // Get product and cart state from Redux
+    const { selectedProduct: excursion, loading } = useAppSelector((state) => state.products);
+    const { checkout } = useAppSelector((state) => state.cart);
 
     // Get today's date in YYYY-MM-DD format
     const getTodayDate = () => {
@@ -15,8 +20,6 @@ export default function ItemDetailpage() {
         return today.toISOString().split('T')[0];
     };
 
-    const [excursion, setExcursion] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
     const [adults, setAdults] = useState(2);
     const [children, setChildren] = useState(0);
@@ -26,32 +29,27 @@ export default function ItemDetailpage() {
 
     const id = decodeURIComponent(encodedId ?? '');
 
+    // Fetch excursion details
     useEffect(() => {
-        const fetchExcursion = async () => {
-            try {
-                const data = await getExcursionById(id!);
-                console.log("data in detail page", data);
-                setExcursion(data);
-            } catch (err) {
-                console.error('Failed to fetch excursion:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) fetchExcursion();
-    }, [id]);
+        if (id) {
+            dispatch(fetchExcursionById(id));
+        }
+    }, [id, dispatch]);
 
     const nextImage = () => {
-        setCurrentImageIndex((prev) => (prev + 1) % excursion.images.length);
+        if (excursion) {
+            setCurrentImageIndex((prev) => (prev + 1) % excursion.images.length);
+        }
     };
 
     const prevImage = () => {
-        setCurrentImageIndex((prev) => (prev - 1 + excursion.images.length) % excursion.images.length);
+        if (excursion) {
+            setCurrentImageIndex((prev) => (prev - 1 + excursion.images.length) % excursion.images.length);
+        }
     };
 
     const totalGuests = adults + children;
-    const subtotal = excursion?.price * totalGuests || 0;
+    const subtotal = excursion && excursion?.price * totalGuests || 0;
 
     // Format date for display
     const formatDateDisplay = (dateString: string) => {
@@ -71,22 +69,29 @@ export default function ItemDetailpage() {
 
         setAddingToCart(true);
         try {
-            await addToCart({
-                variantId: excursion.variants[0].id,
-                quantity: totalGuests,
-                title: `${excursion.title} - ${selectedDate}`,
-                price: excursion.price,
-                image: excursion.images[0],
-                productId: excursion.id,
-                customAttributes: {
-                    date: selectedDate,
-                    adults: adults.toString(),
-                    children: children.toString(),
-                    totalGuests: totalGuests.toString(),
-                }
-            });
+            const result = await dispatch(
+                addToCartAsync({
+                    item: {
+                        variantId: excursion.variants[0].id,
+                        quantity: totalGuests,
+                        title: `${excursion.title} - ${selectedDate}`,
+                        price: excursion.price,
+                        image: excursion.images[0],
+                        productId: excursion.id,
+                        customAttributes: {
+                            date: selectedDate,
+                            adults: adults.toString(),
+                            children: children.toString(),
+                            totalGuests: totalGuests.toString(),
+                        }
+                    },
+                    currentCheckout: checkout
+                })
+            );
 
-            navigate('/cart');
+            if (result.meta.requestStatus === 'fulfilled') {
+                navigate('/cart');
+            }
         } catch (error) {
             console.error('Error adding to cart:', error);
             alert('Failed to add to cart. Please try again.');
@@ -115,7 +120,6 @@ export default function ItemDetailpage() {
         <div className="min-h-screen bg-white">
             {/* Custom Styles for Date Picker */}
             <style>{`
-                /* Custom date input styling */
                 input[type="date"] {
                     position: relative;
                     cursor: pointer;
@@ -134,7 +138,6 @@ export default function ItemDetailpage() {
                     cursor: pointer;
                 }
 
-                /* Hover effect for date input */
                 input[type="date"]:hover {
                     border-color: #3B82F6 !important;
                 }
@@ -144,7 +147,6 @@ export default function ItemDetailpage() {
                     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
                 }
 
-                /* Custom calendar icon styling */
                 .date-input-wrapper {
                     position: relative;
                 }
@@ -332,7 +334,7 @@ export default function ItemDetailpage() {
                                     <div className="text-sm text-gray-600 mt-1">per person</div>
                                 </div>
 
-                                {/* Date Selection - STYLED */}
+                                {/* Date Selection */}
                                 <div className="space-y-4 mb-6">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-900 mb-2">

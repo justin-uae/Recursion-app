@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllExcursions } from '../services/shopifyService';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { fetchAllExcursions } from '../slices/productsSlice';
 
 interface Product {
     id: string;
@@ -17,9 +18,10 @@ interface Product {
 }
 
 const ViewAllExcursion = () => {
-    const [excursions, setExcursions] = useState<Product[]>([]);
+    const dispatch = useAppDispatch();
+    const { products: excursions, loading } = useAppSelector((state) => state.products);
+
     const [filteredExcursions, setFilteredExcursions] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Filter states
@@ -36,24 +38,10 @@ const ViewAllExcursion = () => {
         { value: 'cultural', label: 'Cultural' },
     ];
 
-    // Fetch excursions from Shopify
+    // Fetch excursions on mount
     useEffect(() => {
-        fetchExcursions();
-    }, []);
-
-    const fetchExcursions = async () => {
-        setLoading(true);
-        try {
-            const products = await getAllExcursions();
-            setExcursions(products);
-            setFilteredExcursions(products);
-        } catch (error) {
-            console.error('Error fetching excursions:', error);
-            // TODO: Show error message to user
-        } finally {
-            setLoading(false);
-        }
-    };
+        dispatch(fetchAllExcursions());
+    }, [dispatch]);
 
     // Filter and search logic
     useEffect(() => {
@@ -68,13 +56,8 @@ const ViewAllExcursion = () => {
             );
         }
 
-        // Category filter - You'll need to add category logic based on your Shopify setup
-        // Options: 
-        // 1. Use product tags
-        // 2. Use product type
-        // 3. Add a category metafield
+        // Category filter
         if (selectedCategory !== 'all') {
-            // Example: filter by title or description containing category keyword
             filtered = filtered.filter(exc =>
                 exc.title.toLowerCase().includes(selectedCategory.toLowerCase()) ||
                 exc.description.toLowerCase().includes(selectedCategory.toLowerCase())
@@ -325,10 +308,8 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
     const navigate = useNavigate();
 
     const goToDetail = (productId: string) => {
-        console.log("productId", productId);
         const encodedId = encodeURIComponent(productId);
         navigate(`/excursion/${encodedId}`);
-
     };
 
     const hasDiscount = excursion.originalPrice && excursion.originalPrice > excursion.price;

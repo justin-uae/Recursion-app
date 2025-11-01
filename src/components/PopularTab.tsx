@@ -1,42 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Star, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getAllExcursions } from '../services/shopifyService';
 import { Link, useNavigate } from 'react-router-dom';
-
-interface Product {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    originalPrice: number | null;
-    images: string[];
-    location: string;
-    duration: string;
-    rating: number;
-    reviewsCount: number;
-    groupSize: string;
-}
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { fetchAllExcursions } from '../slices/productsSlice';
 
 export default function PopularTours() {
     const [favorites, setFavorites] = useState<string[]>([]);
-    const [tours, setTours] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    const dispatch = useAppDispatch();
+    const { products: tours, loading } = useAppSelector((state) => state.products);
+
+    // Fetch excursions on mount
     useEffect(() => {
-        const fetchExcursions = async () => {
-            try {
-                const data = await getAllExcursions();
-                setTours(data.slice(0, 10));
-            } catch (error) {
-                console.error('Error fetching excursions:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchExcursions();
-    }, []);
+        dispatch(fetchAllExcursions());
+    }, [dispatch]);
+
+    // Get top 10 tours with useMemo for performance
+    const topTours = useMemo(() => {
+        return tours.slice(0, 10);
+    }, [tours]);
 
     const toggleFavorite = (tourId: string) => {
         setFavorites((prev) =>
@@ -97,7 +81,7 @@ export default function PopularTours() {
                     className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth"
                     style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none' }}
                 >
-                    {tours.map((tour) => (
+                    {topTours.map((tour) => (
                         <div
                             key={tour.id}
                             className="group cursor-pointer min-w-[250px] md:min-w-[300px] lg:min-w-[280px] flex-shrink-0"

@@ -1,41 +1,34 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getCollectionsWithProducts } from '../services/shopifyService';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { fetchCollectionsWithProducts } from '../slices/productsSlice';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-    const [bestCitiesToVisit, setBestCitiesToVisit] = useState<any[]>([]);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+    const dispatch = useAppDispatch();
+    const { collectionsWithProducts, loading } = useAppSelector((state) => state.products);
+
+    // Fetch collections on mount
     useEffect(() => {
-        const fetchCities = async () => {
-            try {
-                const collections = await getCollectionsWithProducts();
+        dispatch(fetchCollectionsWithProducts());
+    }, [dispatch]);
 
-                const bestCitiesCollection = collections.find(
-                    (col: any) => col.handle === "best-cities-to-visit"
-                );
+    // Get best cities to visit collection
+    const bestCitiesCollection = collectionsWithProducts.find(
+        (col: any) => col.handle === 'best-cities-to-visit'
+    );
 
-                if (!bestCitiesCollection) {
-                    console.warn("No 'Best Cities to Visit' collection found");
-                    return;
-                }
+    const bestCitiesToVisit = bestCitiesCollection?.products || [];
 
-                const cityList = bestCitiesCollection.products.map((product: any) => ({
-                    title: product.title,
-                    image: product.image,
-                    location: product.location,
-                }));
-
-                setBestCitiesToVisit(cityList);
-            } catch (error) {
-                console.error("Error fetching city collections:", error);
-            }
-        };
-
-        fetchCities();
-    }, []);
+    // Get unique locations for dropdown
+    const uniqueLocations = [
+        ...new Map(
+            bestCitiesToVisit?.map((city: any) => [city?.location, city])
+        ).values(),
+    ];
 
     // Scroll Functionality
     const scroll = (direction: 'left' | 'right') => {
@@ -111,31 +104,33 @@ export default function HomepageBanner() {
 
                         {showLocationDropdown && (
                             <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-2xl p-4 max-h-96 overflow-y-auto z-50 border border-gray-200">
-                                <div className="grid grid-cols-2 gap-3">
-                                    {[
-                                        ...new Map(
-                                            bestCitiesToVisit?.map((city) => [city?.location, city])
-                                        ).values(), // 👈 ensures unique locations
-                                    ]?.map((city, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => {
-                                                setSelectedLocation(city?.location);
-                                                setShowLocationDropdown(false);
-                                            }}
-                                            className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="w-full h-24 rounded-lg overflow-hidden">
-                                                <img
-                                                    src={`${city?.image}?width=400&height=300&crop=center`}
-                                                    alt={city.location}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                            <span className="text-sm font-medium text-gray-700">{city?.location}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                {loading ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                        Loading locations...
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {uniqueLocations?.map((city: any, index: number) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => {
+                                                    setSelectedLocation(city?.location);
+                                                    setShowLocationDropdown(false);
+                                                }}
+                                                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="w-full h-24 rounded-lg overflow-hidden">
+                                                    <img
+                                                        src={`${city?.image}?width=400&height=300&crop=center`}
+                                                        alt={city.location}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-medium text-gray-700">{city?.location}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -163,28 +158,34 @@ export default function HomepageBanner() {
                         </div>
                     </div>
 
-                    <div
-                        ref={scrollContainerRef}
-                        className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide"
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                    >
-                        {bestCitiesToVisit.map((city, index) => (
-                            <div
-                                key={index}
-                                className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
-                            >
-                                <img
-                                    src={`${city?.image}?width=400&height=300&crop=center`}
-                                    alt={city.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                                <div className="absolute bottom-4 left-4">
-                                    <h3 className="text-white text-2xl font-bold">{city?.location}</h3>
+                    {loading ? (
+                        <div className="text-center py-12 text-gray-500">
+                            Loading best cities...
+                        </div>
+                    ) : (
+                        <div
+                            ref={scrollContainerRef}
+                            className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        >
+                            {bestCitiesToVisit.map((city: any, index: number) => (
+                                <div
+                                    key={index}
+                                    className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
+                                >
+                                    <img
+                                        src={`${city?.image}?width=400&height=300&crop=center`}
+                                        alt={city.title}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                    <div className="absolute bottom-4 left-4">
+                                        <h3 className="text-white text-2xl font-bold">{city?.location}</h3>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

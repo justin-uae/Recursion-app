@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Phone, Mail, MapPin, LogOut, User as UserIcon, Calendar } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/Cartcontext';
+import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
+import { logout } from '../slices/authSlice';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
 
-    const { user, isAuthenticated, logout } = useAuth();
-    const { cartCount } = useCart();
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+
+    // Get auth state from Redux
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+
+    // Get cart state from Redux
+    const { items } = useAppSelector((state) => state.cart);
+
+    // Calculate cart count from items
+    const cartCount = items.reduce((total, item) => total + item.quantity, 0);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -20,6 +29,11 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    const handleLogout = () => {
+        dispatch(logout());
+        setShowUserMenu(false);
+        navigate('/login');
+    };
 
     return (
         <>
@@ -155,10 +169,7 @@ export default function Navbar() {
                                             <hr className="my-2 border-gray-100" />
 
                                             <button
-                                                onClick={() => {
-                                                    logout();
-                                                    setShowUserMenu(false);
-                                                }}
+                                                onClick={handleLogout}
                                                 className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors"
                                             >
                                                 <LogOut className="w-5 h-5" />
@@ -273,7 +284,7 @@ export default function Navbar() {
 
                                             <button
                                                 onClick={() => {
-                                                    logout();
+                                                    handleLogout();
                                                     setIsMenuOpen(false);
                                                 }}
                                                 className="w-full flex items-center gap-3 text-red-600 hover:text-red-700 py-2"

@@ -1,9 +1,9 @@
 import { Mail, Calendar, MapPin } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { useAppSelector } from '../hooks/useRedux';
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user } = useAppSelector((state) => state.auth);
 
     return (
         <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
