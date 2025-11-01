@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchCollectionsWithProducts } from '../slices/productsSlice';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getMediaUrls } from '../services/shopifyService';
 
 export default function HomepageBanner() {
@@ -156,9 +156,12 @@ export default function HomepageBanner() {
                                     UAE
                                 </h2>
                             </div>
-                            <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
-                                View All
-                            </button>
+                            <Link to={"/excursions"}>
+                                <button 
+                                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
+                                    View All
+                                </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -189,8 +192,8 @@ export default function HomepageBanner() {
                                 key={index}
                                 onClick={() => setCurrentBannerIndex(index)}
                                 className={`w-2 h-2 rounded-full transition-all ${index === currentBannerIndex
-                                        ? 'bg-white w-8'
-                                        : 'bg-white/50 hover:bg-white/75'
+                                    ? 'bg-white w-8'
+                                    : 'bg-white/50 hover:bg-white/75'
                                     }`}
                             />
                         ))}
