@@ -127,6 +127,12 @@ export const getCollectionsWithProducts = async () => {
               url
               altText
             }
+            metafields(identifiers: [
+              {namespace: "custom", key: "banner"}
+            ]) {
+              key
+              value
+            }
             products(first: 20) {
               edges {
                 node {
@@ -163,24 +169,90 @@ export const getCollectionsWithProducts = async () => {
 
     return data.collections.edges.map((collectionEdge: any) => {
       const collection = collectionEdge.node;
+
+      // Extract banner media IDs from collection metafield
+      const bannerMetafield = collection.metafields?.find(
+        (m: any) => m?.key === "banner"
+      )?.value;
+
+      let bannerImages: string[] = [];
+      if (bannerMetafield) {
+        try {
+          // Parse the metafield value (should be JSON array of media gids)
+          const mediaIds = JSON.parse(bannerMetafield);
+
+          if (Array.isArray(mediaIds) && mediaIds.length > 0) {
+            // For Shopify MediaImage IDs, we need to fetch them separately or construct URLs
+            bannerImages = mediaIds.map((mediaId: string) => {
+              if (typeof mediaId === 'string') {
+                // If it's already a URL, use it directly
+                if (mediaId.startsWith('http')) {
+                  return mediaId;
+                }
+                // If it's a gid, we'll need to fetch the media details
+                // For now, we'll construct a placeholder URL
+                return mediaId;
+              }
+              return '';
+            }).filter((url: string) => url);
+          }
+        } catch (e) {
+          console.error("Error parsing banner metafield:", e);
+        }
+      }
+
       return {
         id: collection.id,
         title: collection.title,
         handle: collection.handle,
         description: collection.description,
         image: collection.image?.url || "",
+        bannerImages: bannerImages,
+        bannerMediaIds: bannerMetafield ? JSON.parse(bannerMetafield) : [], // Store raw media IDs for later fetching
         products: collection.products?.edges?.map((productEdge: any) => ({
           id: productEdge.node.id,
           title: productEdge.node.title,
           image: productEdge.node.images?.edges[0]?.node?.url || "",
           location:
-            productEdge.node.metafields?.find((m: any) => m.key === "location")
+            productEdge.node.metafields?.find((m: any) => m?.key === "location")
               ?.value || "",
         })),
       };
     });
   } catch (error) {
     console.error("Error fetching collections with products:", error);
+    return [];
+  }
+};
+
+// Separate function to fetch media URLs from media IDs
+export const getMediaUrls = async (mediaIds: string[]) => {
+  if (!mediaIds || mediaIds.length === 0) return [];
+
+  const query = `
+    query GetMediaUrls($ids: [ID!]!) {
+      nodes(ids: $ids) {
+        ... on MediaImage {
+          id
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const { data } = await client.request(query, { variables: { ids: mediaIds } });
+
+    if (!data?.nodes) return [];
+
+    return data.nodes
+      .filter((node: any) => node?.image?.url)
+      .map((node: any) => node.image.url);
+  } catch (error) {
+    console.error("Error fetching media URLs:", error);
     return [];
   }
 };

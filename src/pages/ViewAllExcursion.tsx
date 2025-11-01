@@ -324,8 +324,9 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
     const navigate = useNavigate();
 
     const goToDetail = (productId: string) => {
-        const encodedId = encodeURIComponent(productId);
-        navigate(`/excursion/${encodedId}`);
+
+        const numericId = productId.split('/').pop() || productId;
+        navigate(`/excursion/${numericId}`);
     };
 
     const hasDiscount = excursion.originalPrice && excursion.originalPrice > excursion.price;

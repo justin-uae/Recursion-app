@@ -35,6 +35,8 @@ interface Collection {
     description: string;
     image: string;
     handle: string;
+    bannerImages?: string[];
+    bannerMediaIds?: string[];
 }
 
 interface CollectionWithProducts extends Collection {
@@ -43,6 +45,14 @@ interface CollectionWithProducts extends Collection {
         title: string;
         image: string;
         location: string;
+        images?: {
+            edges: Array<{
+                node: {
+                    url: string;
+                    altText: string | null;
+                }
+            }>
+        };
     }>;
 }
 

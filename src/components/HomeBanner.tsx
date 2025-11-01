@@ -3,10 +3,14 @@ import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchCollectionsWithProducts } from '../slices/productsSlice';
 import { useNavigate } from 'react-router-dom';
+import { getMediaUrls } from '../services/shopifyService';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+    const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+    const [bannerUrls, setBannerUrls] = useState<string[]>([]);
+    const [loadingBanners, setLoadingBanners] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const dispatch = useAppDispatch();
@@ -18,10 +22,57 @@ export default function HomepageBanner() {
         dispatch(fetchCollectionsWithProducts());
     }, [dispatch]);
 
+    // Fetch banner URLs from media IDs
+    useEffect(() => {
+        const fetchBannerUrls = async () => {
+            const bannerCollection = collectionsWithProducts?.find((col: any) => col.handle === "banner");
+            const mediaIds = bannerCollection?.bannerMediaIds || [];
+
+            if (mediaIds.length > 0) {
+                setLoadingBanners(true);
+                try {
+                    const urls = await getMediaUrls(mediaIds);
+                    setBannerUrls(urls);
+                } catch (error) {
+                    console.error("Error fetching banner URLs:", error);
+                } finally {
+                    setLoadingBanners(false);
+                }
+            }
+        };
+
+        fetchBannerUrls();
+    }, [collectionsWithProducts]);
+
+    // Auto-rotate banner every 5 seconds
+    useEffect(() => {
+        if (bannerUrls.length > 0) {
+            const interval = setInterval(() => {
+                setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [bannerUrls.length]);
+
+    // Handle banner navigation
+    const handleBannerNext = () => {
+        if (bannerUrls.length > 0) {
+            setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
+        }
+    };
+
+    const handleBannerPrev = () => {
+        if (bannerUrls.length > 0) {
+            setCurrentBannerIndex((prev) => (prev - 1 + bannerUrls.length) % bannerUrls.length);
+        }
+    };
+
+    // Get current banner image
+    const currentBannerImage = bannerUrls[currentBannerIndex] || '';
+
     useEffect(() => {
         if (selectedLocation !== '') {
             console.log("selectedLocation", selectedLocation);
-            // Navigate to excursions page with location as query parameter
             navigate(`/excursions?location=${encodeURIComponent(selectedLocation)}`);
         }
     }, [selectedLocation, navigate])
@@ -44,7 +95,7 @@ export default function HomepageBanner() {
     const scroll = (direction: 'left' | 'right') => {
         if (scrollContainerRef.current) {
             const { scrollLeft, clientWidth } = scrollContainerRef.current;
-            const scrollAmount = clientWidth * 0.8; // scroll by 80% of visible width
+            const scrollAmount = clientWidth * 0.8;
             const newScrollPosition =
                 direction === 'left'
                     ? scrollLeft - scrollAmount
@@ -66,12 +117,31 @@ export default function HomepageBanner() {
             {/* Hero Banner */}
             <div className="relative h-96">
                 <div className="absolute inset-0 overflow-hidden">
-                    <img
-                        src="https://wallpaperaccess.com/full/646452.jpg"
-                        alt="Jeddah"
-                        className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                    {loadingBanners ? (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : currentBannerImage ? (
+                        <>
+                            <img
+                                // src={currentBannerImage}
+                                src={`${currentBannerImage}?width=900&height=900`}
+
+                                alt="Banner"
+                                className="w-full h-full object-cover transition-opacity duration-500"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                        </>
+                    ) : (
+                        <>
+                            <img
+                                src="https://wallpaperaccess.com/full/646452.jpg"
+                                alt="Jeddah"
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                        </>
+                    )}
                 </div>
 
                 <div className="absolute inset-0 flex items-center">
@@ -87,19 +157,45 @@ export default function HomepageBanner() {
                                 </h2>
                             </div>
                             <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
-                                BOOK NOW
+                                View All
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation Arrows */}
-                <button className="absolute right-20 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all">
-                    <ChevronLeft className="w-6 h-6 text-gray-700" />
-                </button>
-                <button className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all">
-                    <ChevronRight className="w-6 h-6 text-gray-700" />
-                </button>
+                {bannerUrls.length > 1 && (
+                    <>
+                        <button
+                            onClick={handleBannerPrev}
+                            className="absolute right-20 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:bg-gray-100"
+                        >
+                            <ChevronLeft className="w-6 h-6 text-gray-700" />
+                        </button>
+                        <button
+                            onClick={handleBannerNext}
+                            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:bg-gray-100"
+                        >
+                            <ChevronRight className="w-6 h-6 text-gray-700" />
+                        </button>
+                    </>
+                )}
+
+                {/* Banner Indicators */}
+                {bannerUrls.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                        {bannerUrls.map((_: string, index: number) => (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentBannerIndex(index)}
+                                className={`w-2 h-2 rounded-full transition-all ${index === currentBannerIndex
+                                        ? 'bg-white w-8'
+                                        : 'bg-white/50 hover:bg-white/75'
+                                    }`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Location Selector */}
@@ -135,7 +231,7 @@ export default function HomepageBanner() {
                                             >
                                                 <div className="w-full h-24 rounded-lg overflow-hidden">
                                                     <img
-                                                        src={`${city?.image}?width=400&height=300&crop=center`}
+                                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                                         alt={city.location}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -189,7 +285,7 @@ export default function HomepageBanner() {
                                     className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64 hover:shadow-2xl transition-shadow"
                                 >
                                     <img
-                                        src={`${city?.image}?width=400&height=300&crop=center`}
+                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                         alt={city.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />

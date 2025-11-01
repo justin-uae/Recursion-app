@@ -31,8 +31,8 @@ export default function PopularTours() {
     };
 
     const goToDetail = (productId: string) => {
-        const encodedId = encodeURIComponent(productId);
-        navigate(`/excursion/${encodedId}`);
+        const numericId = productId?.split('/').pop() || productId;
+        navigate(`/excursion/${numericId}`);
     };
 
     const scroll = (direction: 'left' | 'right') => {

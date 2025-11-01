@@ -6,7 +6,7 @@ import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
 
 export default function ItemDetailpage() {
-    const { id: encodedId } = useParams<{ id: string }>();
+    const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
@@ -27,12 +27,11 @@ export default function ItemDetailpage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [addingToCart, setAddingToCart] = useState(false);
 
-    const id = decodeURIComponent(encodedId ?? '');
-
     // Fetch excursion details
     useEffect(() => {
         if (id) {
-            dispatch(fetchExcursionById(id));
+            const gidId = id.startsWith('gid://') ? id : `gid://shopify/Product/${id}`;
+            dispatch(fetchExcursionById(gidId));
         }
     }, [id, dispatch]);
 
