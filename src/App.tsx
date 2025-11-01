@@ -16,6 +16,7 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const BookingsPage = lazy(() => import('./pages/BookingsPage'));
 const CartPage = lazy(() => import('./pages/CartPage'));
+const AboutPage = lazy(() => import('./pages/AboutUs'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 const ViewAllExcursion = lazy(() => import('./pages/ViewAllExcursion'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
@@ -36,7 +37,7 @@ function App() {
           <Route path='/contact' element={<ContactUsPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/register' element={<RegisterPage />} />
-          <Route path='/about' element={<FallbackPage />} />
+          <Route path='/about' element={<AboutPage />} />
           <Route path='/excursions' element={<ViewAllExcursion />} />
           <Route path='/excursion/:id' element={<ItemDetailpage />} />
 
