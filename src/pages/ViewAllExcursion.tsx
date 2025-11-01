@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
 
@@ -19,29 +19,40 @@ interface Product {
 
 const ViewAllExcursion = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { products: excursions, loading } = useAppSelector((state) => state.products);
 
     const [filteredExcursions, setFilteredExcursions] = useState<Product[]>([]);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
+    // Get location from query parameter
+    const locationFromQuery = searchParams.get('location') || '';
+
     // Filter states
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedLocation, setSelectedLocation] = useState(locationFromQuery);
     const [sortBy, setSortBy] = useState('rating');
 
-    const categories = [
-        { value: 'all', label: 'All Tours' },
-        { value: 'desert', label: 'Desert Safari' },
-        { value: 'city', label: 'City Tours' },
-        { value: 'water', label: 'Water Activities' },
-        { value: 'adventure', label: 'Adventure' },
-        { value: 'cultural', label: 'Cultural' },
-    ];
+    // Get unique locations from excursions
+    const uniqueLocations = Array.from(
+        new Set(excursions.map((exc: Product) => exc.location).filter(Boolean))
+    ).map((location) => ({
+        value: location,
+        label: location,
+    }));
 
     // Fetch excursions on mount
     useEffect(() => {
         dispatch(fetchAllExcursions());
     }, [dispatch]);
+
+    // Update selected location when query parameter changes
+    useEffect(() => {
+        if (locationFromQuery) {
+            setSelectedLocation(locationFromQuery);
+        }
+    }, [locationFromQuery]);
 
     // Filter and search logic
     useEffect(() => {
@@ -56,11 +67,10 @@ const ViewAllExcursion = () => {
             );
         }
 
-        // Category filter
-        if (selectedCategory !== 'all') {
+        // Location filter
+        if (selectedLocation) {
             filtered = filtered.filter(exc =>
-                exc.title.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-                exc.description.toLowerCase().includes(selectedCategory.toLowerCase())
+                exc.location.toLowerCase() === selectedLocation.toLowerCase()
             );
         }
 
@@ -74,18 +84,19 @@ const ViewAllExcursion = () => {
         }
 
         setFilteredExcursions(filtered);
-    }, [searchQuery, selectedCategory, sortBy, excursions]);
+    }, [searchQuery, selectedLocation, sortBy, excursions]);
 
     const clearFilters = () => {
         setSearchQuery('');
-        setSelectedCategory('all');
+        setSelectedLocation('');
         setSortBy('rating');
+        navigate('/excursions');
     };
 
     const activeFiltersCount = () => {
         let count = 0;
-        if (selectedCategory !== 'all') count++;
         if (searchQuery) count++;
+        if (selectedLocation) count++;
         return count;
     };
 
@@ -100,6 +111,7 @@ const ViewAllExcursion = () => {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 totalCount={excursions.length}
+                selectedLocation={selectedLocation}
             />
 
             {/* Main Content */}
@@ -123,9 +135,9 @@ const ViewAllExcursion = () => {
                     {/* Desktop Sidebar Filters */}
                     <aside className="hidden lg:block lg:w-64 flex-shrink-0">
                         <FilterSidebar
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
+                            uniqueLocations={uniqueLocations}
+                            selectedLocation={selectedLocation}
+                            setSelectedLocation={setSelectedLocation}
                             clearFilters={clearFilters}
                         />
                     </aside>
@@ -133,9 +145,9 @@ const ViewAllExcursion = () => {
                     {/* Mobile Filter Drawer */}
                     {showMobileFilters && (
                         <MobileFilterDrawer
-                            categories={categories}
-                            selectedCategory={selectedCategory}
-                            setSelectedCategory={setSelectedCategory}
+                            uniqueLocations={uniqueLocations}
+                            selectedLocation={selectedLocation}
+                            setSelectedLocation={setSelectedLocation}
                             clearFilters={clearFilters}
                             onClose={() => setShowMobileFilters(false)}
                         />
@@ -147,6 +159,7 @@ const ViewAllExcursion = () => {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                             <p className="text-gray-600">
                                 <span className="font-semibold text-gray-800">{filteredExcursions.length}</span> {filteredExcursions.length === 1 ? 'experience' : 'experiences'} found
+                                {selectedLocation && <span className="ml-2 text-blue-600">in {selectedLocation}</span>}
                             </p>
 
                             <select
@@ -178,11 +191,11 @@ const ViewAllExcursion = () => {
 };
 
 // Hero Section Component
-const HeroSection = ({ searchQuery, setSearchQuery, totalCount }: any) => (
+const HeroSection = ({ searchQuery, setSearchQuery, totalCount, selectedLocation }: any) => (
     <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 text-white py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
             <h1 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4">
-                Explore Dubai & UAE
+                {selectedLocation ? `Explore ${selectedLocation}` : 'Explore Dubai & UAE'}
             </h1>
             <p className="text-lg md:text-xl text-blue-100 mb-6">
                 Discover {totalCount}+ unforgettable experiences
@@ -213,9 +226,9 @@ const HeroSection = ({ searchQuery, setSearchQuery, totalCount }: any) => (
 
 // Filter Sidebar Component
 const FilterSidebar = ({
-    categories,
-    selectedCategory,
-    setSelectedCategory,
+    uniqueLocations,
+    selectedLocation,
+    setSelectedLocation,
     clearFilters
 }: any) => (
     <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
@@ -229,20 +242,23 @@ const FilterSidebar = ({
             </button>
         </div>
 
-        {/* Category Filter */}
-        <FilterSection title="Category">
-            {categories.map((cat: any) => (
-                <label key={cat.value} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
-                    <input
-                        type="radio"
-                        name="category"
-                        value={cat.value}
-                        checked={selectedCategory === cat.value}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="ml-3 text-gray-700">{cat.label}</span>
-                </label>
+        {/* Location Filter */}
+        <FilterSection title="Location">
+            <button
+                onClick={() => setSelectedLocation('')}
+                className={`block w-full text-left px-2 py-2 rounded ${!selectedLocation ? 'bg-blue-100 text-blue-700 font-medium' : 'hover:bg-gray-50'}`}
+            >
+                All Locations
+            </button>
+            {uniqueLocations.map((location: any) => (
+                <button
+                    key={location.value}
+                    onClick={() => setSelectedLocation(location.value)}
+                    className={`block w-full text-left px-2 py-2 rounded transition-colors ${selectedLocation === location.value ? 'bg-blue-100 text-blue-700 font-medium' : 'hover:bg-gray-50 text-gray-700'
+                        }`}
+                >
+                    {location.label}
+                </button>
             ))}
         </FilterSection>
     </div>
@@ -250,9 +266,9 @@ const FilterSidebar = ({
 
 // Mobile Filter Drawer
 const MobileFilterDrawer = ({
-    categories,
-    selectedCategory,
-    setSelectedCategory,
+    uniqueLocations,
+    selectedLocation,
+    setSelectedLocation,
     clearFilters,
     onClose
 }: any) => (
@@ -276,9 +292,9 @@ const MobileFilterDrawer = ({
                 </div>
 
                 <FilterSidebar
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    setSelectedCategory={setSelectedCategory}
+                    uniqueLocations={uniqueLocations}
+                    selectedLocation={selectedLocation}
+                    setSelectedLocation={setSelectedLocation}
                     clearFilters={clearFilters}
                 />
 

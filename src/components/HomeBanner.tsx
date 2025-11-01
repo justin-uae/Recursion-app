@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchCollectionsWithProducts } from '../slices/productsSlice';
+import { useNavigate } from 'react-router-dom';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
@@ -9,12 +10,21 @@ export default function HomepageBanner() {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const dispatch = useAppDispatch();
+    const navigate = useNavigate()
     const { collectionsWithProducts, loading } = useAppSelector((state) => state.products);
 
     // Fetch collections on mount
     useEffect(() => {
         dispatch(fetchCollectionsWithProducts());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (selectedLocation !== '') {
+            console.log("selectedLocation", selectedLocation);
+            // Navigate to excursions page with location as query parameter
+            navigate(`/excursions?location=${encodeURIComponent(selectedLocation)}`);
+        }
+    }, [selectedLocation, navigate])
 
     // Get best cities to visit collection
     const bestCitiesCollection = collectionsWithProducts.find(
@@ -45,6 +55,10 @@ export default function HomepageBanner() {
                 behavior: 'smooth',
             });
         }
+    };
+
+    const handleCityClick = (location: string) => {
+        setSelectedLocation(location);
     };
 
     return (
@@ -114,7 +128,7 @@ export default function HomepageBanner() {
                                             <button
                                                 key={index}
                                                 onClick={() => {
-                                                    setSelectedLocation(city?.location);
+                                                    handleCityClick(city?.location);
                                                     setShowLocationDropdown(false);
                                                 }}
                                                 className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
@@ -169,9 +183,10 @@ export default function HomepageBanner() {
                             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                         >
                             {bestCitiesToVisit.map((city: any, index: number) => (
-                                <div
+                                <button
                                     key={index}
-                                    className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64"
+                                    onClick={() => handleCityClick(city?.location)}
+                                    className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64 hover:shadow-2xl transition-shadow"
                                 >
                                     <img
                                         src={`${city?.image}?width=400&height=300&crop=center`}
@@ -182,7 +197,7 @@ export default function HomepageBanner() {
                                     <div className="absolute bottom-4 left-4">
                                         <h3 className="text-white text-2xl font-bold">{city?.location}</h3>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     )}

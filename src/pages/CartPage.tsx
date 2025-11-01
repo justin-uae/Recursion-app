@@ -280,7 +280,7 @@ export const CartPageComplete: React.FC = () => {
                         {/* Order Summary Sidebar */}
                         <div className="lg:col-span-1">
                             <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 sticky top-6">
-                                <h3 className="text-2xl font-bold text-gray-800 mb-6">📋 Order Summary</h3>
+                                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Order Summary</h3>
 
                                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-gray-200 mb-6">
                                     <div className="flex justify-between text-gray-600">
@@ -413,7 +413,7 @@ export const CartPageComplete: React.FC = () => {
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 sticky top-6">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-6">📋 Order Summary</h3>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center"> Order Summary</h3>
 
                             <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                                 {items.map((item) => (
