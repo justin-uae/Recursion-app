@@ -43,7 +43,6 @@ export const CartPageComplete: React.FC = () => {
 
     const handleCheckoutClick = () => {
         if (!isAuthenticated) {
-            alert('Please log in to complete your booking');
             navigate('/login');
             return;
         }
