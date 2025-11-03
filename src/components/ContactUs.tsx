@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
 
 export default function ContactUsPage() {
+    const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -15,9 +16,29 @@ export default function ContactUsPage() {
         });
     };
 
-    const handleSubmit = (e: any) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        const FormspreeURL = `https://formspree.io/f/${import.meta.env.VITE_FORMSPREE_URL}`;
+
+        try {
+            const response = await fetch(FormspreeURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                setFormStatus('success');
+                setFormData({ name: '', email: '', message: '' });
+            } else {
+                setFormStatus('error');
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            setFormStatus('error');
+        }
     };
 
     return (
@@ -88,6 +109,16 @@ export default function ContactUsPage() {
                                 Send Message
                             </button>
                         </form>
+                        {formStatus === 'success' && (
+                            <p className="text-green-600 font-semibold mt-4">
+                                ✅ Your message has been sent successfully!
+                            </p>
+                        )}
+                        {formStatus === 'error' && (
+                            <p className="text-red-600 font-semibold mt-4">
+                                ❌ Something went wrong. Please try again.
+                            </p>
+                        )}
                     </div>
 
                     {/* Contact Info */}
