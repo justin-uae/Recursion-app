@@ -329,11 +329,6 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
         navigate(`/excursion/${numericId}`);
     };
 
-    const hasDiscount = excursion.originalPrice && excursion.originalPrice > excursion.price;
-    const discountPercentage = hasDiscount
-        ? Math.round(((excursion.originalPrice! - excursion.price) / excursion.originalPrice!) * 100)
-        : 0;
-
     return (
         <div
             className="bg-white cursor-pointer rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group"
@@ -362,10 +357,10 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
                 )}
 
                 {/* Discount Badge */}
-                {hasDiscount && (
+                {excursion.price && (
                     <div className="absolute top-3 right-3">
                         <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full shadow-md">
-                            -{discountPercentage}%
+                            {Math.round(((60) / (excursion.price + 60)) * 100)}% OFF
                         </span>
                     </div>
                 )}
@@ -426,13 +421,14 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
                     <div>
                         <div className="flex items-center gap-2">
                             <p className="text-2xl font-bold text-blue-600">
-                                ${excursion.price.toFixed(2)}
+                                <span className="text-sm font-semibold text-gray-500">AED</span>
+                                {excursion.price}
                             </p>
-                            {hasDiscount && (
+                            {/* {excursion.price && (
                                 <p className="text-sm text-gray-400 line-through">
-                                    ${excursion.originalPrice!.toFixed(2)}
+                                    {Math.round(((60) / (excursion.price + 60)) * 100)}% OFF
                                 </p>
-                            )}
+                            )} */}
                         </div>
                         <p className="text-xs text-gray-500">per person</p>
                     </div>

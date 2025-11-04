@@ -318,7 +318,8 @@ export default function ItemDetailpage() {
                                         <div className="flex items-baseline gap-3 mb-2">
                                             {/* Original (Strikethrough) Price */}
                                             <span className="text-sm text-gray-500 line-through">
-                                                ${excursion.price + 60}
+                                                <span className="text-sm font-semibold text-gray-500">AED</span>
+                                                {excursion.price + 60}
                                             </span>
                                             {/* Discount Percentage */}
                                             <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
@@ -327,7 +328,8 @@ export default function ItemDetailpage() {
                                         </div>
                                     )}
                                     <div className="text-4xl font-bold text-gray-900">
-                                        ${excursion.price}
+                                        <span className="text-sm font-semibold text-gray-500">AED</span>
+                                        {excursion.price}
                                     </div>
                                     <div className="text-sm text-gray-600 mt-1">per person</div>
                                 </div>
@@ -430,13 +432,16 @@ export default function ItemDetailpage() {
                                             Subtotal ({totalGuests} {totalGuests === 1 ? 'guest' : 'guests'})
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            ${subtotal.toFixed(2)}
+                                            <span className="text-sm font-semibold text-gray-500">AED</span>
+                                            {subtotal.toFixed(2)}
                                         </span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-2 mt-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-lg font-bold text-gray-900">Total</span>
-                                            <span className="text-2xl font-bold text-blue-600">${subtotal.toFixed(2)}</span>
+                                            <span className="text-2xl font-bold text-blue-600">
+                                                <span className="text-sm font-semibold text-gray-500">AED</span>
+                                                {subtotal.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>

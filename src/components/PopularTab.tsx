@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { Star, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useMemo } from 'react';
+import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
 
 export default function PopularTours() {
-    const [favorites, setFavorites] = useState<string[]>([]);
     const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -21,14 +20,6 @@ export default function PopularTours() {
     const topTours = useMemo(() => {
         return tours.slice(0, 10);
     }, [tours]);
-
-    const toggleFavorite = (tourId: string) => {
-        setFavorites((prev) =>
-            prev.includes(tourId)
-                ? prev.filter((id) => id !== tourId)
-                : [...prev, tourId]
-        );
-    };
 
     const goToDetail = (productId: string) => {
         const numericId = productId?.split('/').pop() || productId;
@@ -95,33 +86,22 @@ export default function PopularTours() {
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
 
-                                {/* Favorite Button */}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleFavorite(tour.id);
-                                    }}
-                                    className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors"
-                                >
-                                    <Heart
-                                        className={`w-5 h-5 ${favorites.includes(tour.id)
-                                            ? 'fill-red-500 text-red-500'
-                                            : 'text-gray-700'
-                                            }`}
-                                    />
-                                </button>
-
                                 {/* Price Badge */}
                                 <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2">
                                     <div className="flex items-center gap-2">
-                                        {tour.originalPrice && tour.originalPrice > tour.price && (
-                                            <span className="text-sm text-gray-400 line-through">
-                                                ${tour.originalPrice}
-                                            </span>
+                                        {tour.price && (
+                                            <div className="flex items-baseline gap-3 mb-2">
+                                                {/* Original (Strikethrough) Price */}
+                                                <span className="text-sm text-gray-500 line-through">
+                                                    <span className="text-sm font-semibold text-gray-500">AED</span>
+                                                    {tour.price + 60}
+                                                </span>
+                                                {/* Discount Percentage */}
+                                                <span className="text-lg font-bold text-gray-900">
+                                                    ${tour.price}
+                                                </span>
+                                            </div>
                                         )}
-                                        <span className="text-lg font-bold text-gray-900">
-                                            ${tour.price}
-                                        </span>
                                     </div>
                                 </div>
                             </div>
