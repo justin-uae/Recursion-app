@@ -261,7 +261,7 @@ export const getMediaUrls = async (mediaIds: string[]) => {
 export const getAllExcursions = async (): Promise<Product[]> => {
   const query = `
     query GetProducts {
-      products(first: 20) {
+      products(first: 240) {
         edges {
           node {
             id
