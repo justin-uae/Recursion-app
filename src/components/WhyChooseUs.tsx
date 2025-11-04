@@ -115,9 +115,12 @@ export default function WhyChooseUs() {
                         Book your dream tour today and create memories that last a lifetime
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="bg-white text-blue-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-full transition-colors">
-                            Explore Tours
-                        </button>
+                        <Link to={'/excursions'}>
+                            <button className="bg-white text-blue-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-full transition-colors">
+                                Explore Tours
+                            </button>
+                        </Link>
+
                         <Link to={'/contact'}>
                             <button className="bg-transparent border-2 border-white text-white hover:bg-white/10 font-bold px-8 py-4 rounded-full transition-colors">
                                 Contact Us
