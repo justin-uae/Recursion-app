@@ -314,16 +314,15 @@ export default function ItemDetailpage() {
                             <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg">
                                 {/* Price */}
                                 <div className="mb-6">
-                                    {excursion.originalPrice && (
+                                    {excursion.price && (
                                         <div className="flex items-baseline gap-3 mb-2">
+                                            {/* Original (Strikethrough) Price */}
                                             <span className="text-sm text-gray-500 line-through">
-                                                ${excursion.originalPrice}
+                                                ${excursion.price + 60}
                                             </span>
+                                            {/* Discount Percentage */}
                                             <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
-                                                {Math.round(
-                                                    100 - (excursion.price / excursion.originalPrice) * 100
-                                                )}
-                                                % OFF
+                                                {Math.round(((60) / (excursion.price + 60)) * 100)}% OFF
                                             </span>
                                         </div>
                                     )}
