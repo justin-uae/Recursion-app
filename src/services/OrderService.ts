@@ -40,144 +40,214 @@ interface Order {
 
 /**
  * Create order using Shopify Storefront API
- * Creates a cart and returns checkout URL for customer to complete payment
- * 
- * Note: Storefront API cannot create completed orders directly.
- * This creates a cart + returns checkout URL for COD payment processing.
+ * Creates a cart, adds buyer info and attributes, then returns checkout URL
+ * Customer will complete payment at the checkout URL
  */
 export const createOrderWithCOD = async (orderData: CreateOrderPayload): Promise<Order> => {
   try {
-    // Step 1: Create a cart with line items using Storefront API
+    console.log('📦 Creating cart with Storefront API...');
+
+    // Step 1: Create a cart with line items
     const cartMutation = `
-            mutation CreateCart($input: CartInput!) {
-                cartCreate(input: $input) {
-                    cart {
-                        id
-                        checkoutUrl
-                        cost {
-                            totalAmount {
-                                amount
-                                currencyCode
-                            }
-                            subtotalAmount {
-                                amount
-                            }
-                            totalTaxAmount {
-                                amount
-                            }
-                        }
-                        lines(first: 100) {
-                            edges {
-                                node {
-                                    id
-                                    quantity
-                                    merchandise {
-                                        ... on ProductVariant {
-                                            id
-                                            title
-                                            product {
-                                                title
-                                            }
-                                            priceV2 {
-                                                amount
-                                            }
-                                        }
-                                    }
-                                    attributes {
-                                        key
-                                        value
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    userErrors {
-                        field
-                        message
-                    }
-                }
+      mutation CreateCart($input: CartInput!) {
+        cartCreate(input: $input) {
+          cart {
+            id
+            checkoutUrl
+            cost {
+              totalAmount {
+                amount
+                currencyCode
+              }
+              subtotalAmount {
+                amount
+              }
+              totalTaxAmount {
+                amount
+              }
             }
-        `;
+            lines(first: 100) {
+              edges {
+                node {
+                  id
+                  quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                      product {
+                        title
+                      }
+                      priceV2 {
+                        amount
+                      }
+                    }
+                  }
+                  attributes {
+                    key
+                    value
+                  }
+                }
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
 
     const cartInput = {
       lines: orderData.lineItems.map(item => ({
         merchandiseId: item.variantId,
         quantity: item.quantity,
-        attributes: item.customAttributes || []
       })),
       buyerIdentity: {
         email: orderData.email,
-        phone: orderData.phone
-      }
+        phone: orderData.phone,
+      },
     };
 
     const cartResponse = await client.request(cartMutation, {
-      variables: { input: cartInput }
+      variables: { input: cartInput },
     });
 
     if (cartResponse.data.cartCreate.userErrors.length > 0) {
-      throw new Error(cartResponse.data.cartCreate.userErrors[0].message);
+      throw new Error(`Cart creation failed: ${cartResponse.data.cartCreate.userErrors[0].message}`);
     }
 
     const cart = cartResponse.data.cartCreate.cart;
-    const totalAmount = parseFloat(cart.cost.totalAmount.amount);
-    const subtotalAmount = parseFloat(cart.cost.subtotalAmount?.amount || '0');
-    const taxAmount = cart.cost.totalTaxAmount ? parseFloat(cart.cost.totalTaxAmount.amount) : 0;
+    console.log('✅ Cart created:', cart.id);
 
-    // Step 2: Update cart with note (stored in attributes)
+    // Step 2: Update cart lines with custom attributes (booking details)
     const updateCartMutation = `
-            mutation UpdateCart($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
-                cartLinesUpdate(cartId: $cartId, lines: $lines) {
-                    cart {
-                        id
-                        checkoutUrl
-                        cost {
-                            totalAmount {
-                                amount
-                            }
-                        }
-                    }
-                    userErrors {
-                        field
-                        message
-                    }
-                }
+      mutation UpdateCartLines($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+        cartLinesUpdate(cartId: $cartId, lines: $lines) {
+          cart {
+            id
+            checkoutUrl
+            cost {
+              totalAmount {
+                amount
+              }
+              subtotalAmount {
+                amount
+              }
+              totalTaxAmount {
+                amount
+              }
             }
-        `;
+            lines(first: 100) {
+              edges {
+                node {
+                  id
+                  quantity
+                  merchandise {
+                    ... on ProductVariant {
+                      id
+                      title
+                      product {
+                        title
+                      }
+                      priceV2 {
+                        amount
+                      }
+                    }
+                  }
+                  attributes {
+                    key
+                    value
+                  }
+                }
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
 
     const updateInput = {
       cartId: cart.id,
-      lines: cart.lines.edges.map((edge: any) => ({
+      lines: cart.lines.edges.map((edge: any, index: number) => ({
         id: edge.node.id,
         attributes: [
-          ...edge.node.attributes,
+          ...(orderData.lineItems[index]?.customAttributes || []),
           {
             key: 'customerName',
-            value: orderData.name
+            value: orderData.name,
+          },
+          {
+            key: 'customerEmail',
+            value: orderData.email,
           },
           {
             key: 'customerPhone',
-            value: orderData.phone
+            value: orderData.phone,
           },
-          {
-            key: 'paymentMethod',
-            value: 'Cash on Delivery'
-          }
-        ]
-      }))
+          ...(orderData.note ? [{ key: 'orderNote', value: orderData.note }] : []),
+        ],
+      })),
     };
 
     const updateResponse = await client.request(updateCartMutation, {
-      variables: updateInput
+      variables: updateInput,
     });
 
     if (updateResponse.data.cartLinesUpdate.userErrors.length > 0) {
-      console.warn('Warning updating cart:', updateResponse.data.cartLinesUpdate.userErrors);
+      console.warn('⚠️ Warning updating cart attributes:', updateResponse.data.cartLinesUpdate.userErrors);
     }
 
-    // Step 3: Return order object with checkout URL
-    // Note: This is a cart, not a completed order
-    // Customer must visit checkoutUrl to complete payment
+    const updatedCart = updateResponse.data.cartLinesUpdate.cart;
+    console.log('✅ Cart attributes added');
+
+    // Step 3: Update buyer information in cart for checkout
+    const updateBuyerMutation = `
+      mutation UpdateCartBuyer($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
+        cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
+          cart {
+            id
+            checkoutUrl
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const buyerInput = {
+      cartId: cart.id,
+      buyerIdentity: {
+        email: orderData.email,
+        phone: orderData.phone,
+      },
+    };
+
+    const buyerResponse = await client.request(updateBuyerMutation, {
+      variables: buyerInput,
+    });
+
+    if (buyerResponse.data.cartBuyerIdentityUpdate.userErrors.length > 0) {
+      console.warn('⚠️ Warning updating buyer identity:', buyerResponse.data.cartBuyerIdentityUpdate.userErrors);
+    }
+
+    const finalCheckoutUrl = buyerResponse.data.cartBuyerIdentityUpdate.cart.checkoutUrl || updatedCart.checkoutUrl;
+    console.log('✅ Buyer information added');
+    console.log('🔗 Checkout URL:', finalCheckoutUrl);
+
+    // Step 4: Parse totals
+    const totalAmount = parseFloat(updatedCart.cost.totalAmount.amount);
+    const subtotalAmount = parseFloat(updatedCart.cost.subtotalAmount?.amount || '0');
+    const taxAmount = updatedCart.cost.totalTaxAmount ? parseFloat(updatedCart.cost.totalTaxAmount.amount) : 0;
+
+    // Step 5: Return order object with checkout URL
     const orderObject: Order = {
       id: cart.id,
       orderNumber: `CART-${cart.id.split('/').pop()}`,
@@ -190,19 +260,20 @@ export const createOrderWithCOD = async (orderData: CreateOrderPayload): Promise
       financialStatus: 'PENDING',
       fulfillmentStatus: 'UNFULFILLED',
       createdAt: new Date().toISOString(),
-      checkoutUrl: cart.checkoutUrl,
-      lineItems: cart.lines.edges.map((edge: any) => ({
+      checkoutUrl: finalCheckoutUrl,
+      lineItems: updatedCart.lines.edges.map((edge: any) => ({
         title: edge.node.merchandise.product.title,
         quantity: edge.node.quantity,
         price: parseFloat(edge.node.merchandise.priceV2.amount),
-        customAttributes: edge.node.attributes
-      }))
+        customAttributes: edge.node.attributes,
+      })),
     };
 
+    console.log('✅ Order prepared successfully - ready for checkout');
     return orderObject;
 
   } catch (error) {
-    console.error('Order creation error:', error);
+    console.error('❌ Order creation error:', error);
     throw error;
   }
 };
@@ -212,35 +283,35 @@ export const createOrderWithCOD = async (orderData: CreateOrderPayload): Promise
  */
 export const getCart = async (cartId: string) => {
   const query = `
-        query GetCart($id: ID!) {
-            cart(id: $id) {
-                id
-                checkoutUrl
-                cost {
-                    totalAmount {
-                        amount
-                    }
-                }
-                lines(first: 100) {
-                    edges {
-                        node {
-                            id
-                            quantity
-                            merchandise {
-                                ... on ProductVariant {
-                                    id
-                                    title
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    query GetCart($id: ID!) {
+      cart(id: $id) {
+        id
+        checkoutUrl
+        cost {
+          totalAmount {
+            amount
+          }
         }
-    `;
+        lines(first: 100) {
+          edges {
+            node {
+              id
+              quantity
+              merchandise {
+                ... on ProductVariant {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
 
   const response = await client.request(query, {
-    variables: { id: cartId }
+    variables: { id: cartId },
   });
 
   return response.data.cart;

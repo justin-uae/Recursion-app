@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowRight, Calendar, Users, CheckCircle, Loader, Trash2, Plus, Minus } from 'lucide-react';
+import { ArrowRight, Calendar, Users, Loader, Trash2, Plus, Minus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { createOrder } from '../slices/checkoutSlice';
@@ -17,6 +17,7 @@ export const CartPageComplete: React.FC = () => {
 
     const [currentStep, setCurrentStep] = useState<CheckoutStep>('cart');
     const [submitted, setSubmitted] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -60,9 +61,10 @@ export const CartPageComplete: React.FC = () => {
 
     const handleCheckoutSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErrorMessage(null);
 
         if (!formData.name || !formData.email || !formData.phone) {
-            alert('Please fill in all fields');
+            setErrorMessage('Please fill in all fields');
             return;
         }
 
@@ -83,14 +85,14 @@ export const CartPageComplete: React.FC = () => {
         }));
 
         // Create order through Redux
-        const result = await dispatch(
+        const result: any = await dispatch(
             createOrder({
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone,
                 lineItems,
-                note: 'Payment Method: Cash on Delivery',
-                tags: ['COD', 'Online Booking'],
+                note: 'Online Booking',
+                tags: ['Online Booking'],
             })
         );
 
@@ -99,38 +101,93 @@ export const CartPageComplete: React.FC = () => {
             dispatch(clearCart());
             setSubmitted(true);
 
-            // Redirect after a short delay
+            // Store order data in sessionStorage for success page
+            sessionStorage.setItem('tempOrderData', JSON.stringify(result.payload));
+
+            // Redirect to Shopify checkout after a short delay
             setTimeout(() => {
-                navigate('/order-confirmation', { state: { order: result.payload } });
+                if (result.payload?.checkoutUrl) {
+                    console.log('🔄 Redirecting to Shopify checkout:', result.payload.checkoutUrl);
+                    // Redirect to Shopify's checkout page
+                    window.location.href = result.payload.checkoutUrl;
+                } else {
+                    setErrorMessage('Checkout URL not received. Please try again.');
+                    setSubmitted(false);
+                }
             }, 1500);
+        } else if (result.meta.requestStatus === 'rejected') {
+            setErrorMessage(result.payload || 'Failed to create order. Please try again.');
+            setSubmitted(false);
         }
     };
 
-    // Loading state
-    if (checkoutLoading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-center p-6">
-                <div>
-                    <Loader className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-6" />
-                    <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-                        Processing Your Booking...
-                    </h1>
-                    <p className="text-gray-500">Please wait a moment while we confirm your order.</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Success state
     if (submitted && checkoutSuccess) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="mb-6 animate-bounce">
-                        <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white flex items-center justify-center p-6">
+                <div className="text-center max-w-md">
+                    {/* Animated Loading Icon */}
+                    <div className="mb-8 inline-block">
+                        <Loader className="w-20 h-20 text-blue-600 animate-spin" />
                     </div>
-                    <h1 className="text-4xl font-bold text-gray-800 mb-3">Booking Confirmed! 🎉</h1>
-                    <p className="text-gray-600">We'll reach out soon with confirmation details.</p>
+
+                    {/* Heading */}
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Booking Details Preparing</h1>
+
+                    {/* Subheading */}
+                    <p className="text-lg text-gray-600 mb-8">
+                        Preparing your secure checkout...
+                    </p>
+
+                    {/* Info Cards */}
+                    <div className="space-y-3 mb-8">
+                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                            <p className="text-gray-500 text-xs mb-1">Booking For</p>
+                            <p className="text-gray-800 font-semibold text-sm">{formData.name}</p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                            <p className="text-gray-500 text-xs mb-1">Total to Pay</p>
+                            <p className="text-2xl font-bold text-blue-600">AED {finalTotal.toFixed(2)}</p>
+                        </div>
+
+                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                            <p className="text-gray-500 text-xs mb-1">Items</p>
+                            <p className="text-gray-800 font-semibold text-sm">{items.length} booking{items.length !== 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+
+                    {/* Status Message */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                        <div className="flex items-start gap-3">
+                            <div className="text-2xl">🔒</div>
+                            <div className="text-left">
+                                <p className="font-semibold text-gray-800 text-sm mb-1">Secure Checkout</p>
+                                <p className="text-gray-600 text-xs leading-relaxed">
+                                    Your booking details are ready. You will now proceed to our secure payment page.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Loading Indicator */}
+                    <div className="mb-8">
+                        <p className="text-gray-600 font-semibold mb-3">Redirecting to Payment</p>
+                        <div className="flex gap-2 justify-center">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-100"></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse delay-200"></div>
+                        </div>
+                    </div>
+
+                    {/* Info Message */}
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium text-gray-800">
+                            Next Step: Complete Payment
+                        </p>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                            Please do not close this page. You will be redirected to our secure payment gateway shortly to complete your payment.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
@@ -339,6 +396,13 @@ export const CartPageComplete: React.FC = () => {
                                 🧾 Your Details
                             </h2>
 
+                            {/* Error Message */}
+                            {errorMessage && (
+                                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <p className="text-red-700 text-sm font-semibold">❌ {errorMessage}</p>
+                                </div>
+                            )}
+
                             <div className="space-y-6">
                                 <div>
                                     <label className="block text-gray-700 text-sm mb-2">Full Name *</label>
@@ -382,10 +446,10 @@ export const CartPageComplete: React.FC = () => {
 
                             {/* Payment Info */}
                             <div className="mt-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6">
-                                <h3 className="text-lg font-semibold text-blue-700 mb-2">💰 Payment Method</h3>
+                                <h3 className="text-lg font-semibold text-blue-700 mb-2">💳 Payment</h3>
                                 <p className="text-gray-600 text-sm leading-relaxed">
-                                    ✓ <strong>Cash on Delivery</strong> <br />
-                                    ✓ Pay <strong>AED {finalTotal.toFixed(2)}</strong> when we meet<br />
+                                    ✓ Secure payment processing<br />
+                                    ✓ You will be redirected to our checkout page<br />
                                     ✓ Confirmation will be sent to your email
                                 </p>
                             </div>
@@ -402,7 +466,7 @@ export const CartPageComplete: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        Confirm Booking <ArrowRight className="w-6 h-6" />
+                                        Proceed to Payment <ArrowRight className="w-6 h-6" />
                                     </>
                                 )}
                             </button>
@@ -412,7 +476,7 @@ export const CartPageComplete: React.FC = () => {
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 sticky top-6">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center"> Order Summary</h3>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Order Summary</h3>
 
                             <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                                 {items.map((item) => (

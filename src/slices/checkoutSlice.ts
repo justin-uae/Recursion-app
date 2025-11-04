@@ -21,6 +21,7 @@ interface Order {
     financialStatus: string;
     fulfillmentStatus: string;
     createdAt: string;
+    checkoutUrl: string;
     lineItems: Array<{
         title: string;
         quantity: number;
@@ -43,7 +44,6 @@ const initialState: CheckoutState = {
     success: false,
 };
 
-// Simplified payload - only name, email, phone
 interface CreateOrderPayload {
     name: string;
     email: string;

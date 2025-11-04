@@ -58,7 +58,7 @@ function App() {
             }
           />
           <Route
-            path="/order-confirmation"
+            path="/order-success"
             element={
               <ProtectedRoute>
                 <OrderConfirmation />
