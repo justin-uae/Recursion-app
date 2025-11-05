@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 
 import { BrandedFallback } from './components/LoadingFallback';
 import { initializeAuth } from './slices/authSlice';
+import ScrollToTop from './helper/ScrollToTop';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Suspense fallback={<BrandedFallback />}>
         <Navbar />
         <Routes>
