@@ -4,6 +4,11 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchCollectionsWithProducts } from '../slices/productsSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { getMediaUrls } from '../services/shopifyService';
+import { BannerSkeleton } from './Skeletons/BannerSkeleton';
+import { LocationSelectorSkeleton } from './Skeletons/LocationSelectorSkeleton';
+import { BestCitiesSkeleton } from './Skeletons/BestCitiesSkeleton';
+import { CityCardSkeleton } from './Skeletons/CityCardSkeleton';
+import { LazyImage } from './LazyImage';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
@@ -14,7 +19,7 @@ export default function HomepageBanner() {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const dispatch = useAppDispatch();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { collectionsWithProducts, loading } = useAppSelector((state) => state.products);
 
     // Fetch collections on mount
@@ -75,7 +80,7 @@ export default function HomepageBanner() {
             console.log("selectedLocation", selectedLocation);
             navigate(`/excursions?location=${encodeURIComponent(selectedLocation)}`);
         }
-    }, [selectedLocation, navigate])
+    }, [selectedLocation, navigate]);
 
     // Get best cities to visit collection
     const bestCitiesCollection = collectionsWithProducts.find(
@@ -112,21 +117,59 @@ export default function HomepageBanner() {
         setSelectedLocation(location);
     };
 
+    // Show skeleton while loading
+    if (loading && collectionsWithProducts.length === 0) {
+        return (
+            <div className="relative">
+                <style>{`
+                    @keyframes shimmer {
+                        0% {
+                            background-position: -1000px 0;
+                        }
+                        100% {
+                            background-position: 1000px 0;
+                        }
+                    }
+
+                    .animate-pulse {
+                        animation: shimmer 2s infinite;
+                        background-size: 1000px 100%;
+                    }
+                `}</style>
+                <BannerSkeleton />
+                <LocationSelectorSkeleton />
+                <BestCitiesSkeleton />
+            </div>
+        );
+    }
+
     return (
         <div className="relative">
+            <style>{`
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+
+                .animate-pulse {
+                    animation: shimmer 2s infinite;
+                    background-size: 1000px 100%;
+                }
+            `}</style>
+
             {/* Hero Banner */}
             <div className="relative h-96">
                 <div className="absolute inset-0 overflow-hidden">
                     {loadingBanners ? (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        </div>
+                        <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
                     ) : currentBannerImage ? (
                         <>
-                            <img
-                                // src={currentBannerImage}
+                            <LazyImage
                                 src={`${currentBannerImage}?width=900&height=900`}
-
                                 alt="Banner"
                                 className="w-full h-full object-cover transition-opacity duration-500"
                             />
@@ -134,7 +177,7 @@ export default function HomepageBanner() {
                         </>
                     ) : (
                         <>
-                            <img
+                            <LazyImage
                                 src="https://wallpaperaccess.com/full/646452.jpg"
                                 alt="Jeddah"
                                 className="w-full h-full object-cover"
@@ -157,8 +200,7 @@ export default function HomepageBanner() {
                                 </h2>
                             </div>
                             <Link to={"/excursions"}>
-                                <button 
-                                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
+                                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
                                     View All
                                 </button>
                             </Link>
@@ -218,8 +260,13 @@ export default function HomepageBanner() {
                         {showLocationDropdown && (
                             <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-2xl p-4 max-h-96 overflow-y-auto z-50 border border-gray-200">
                                 {loading ? (
-                                    <div className="text-center py-8 text-gray-500">
-                                        Loading locations...
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[...Array(4)].map((_, i) => (
+                                            <div key={i} className="flex flex-col items-center gap-2 p-3">
+                                                <div className="w-full h-24 rounded-lg bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
+                                                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-20"></div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-2 gap-3">
@@ -233,7 +280,7 @@ export default function HomepageBanner() {
                                                 className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
                                                 <div className="w-full h-24 rounded-lg overflow-hidden">
-                                                    <img
+                                                    <LazyImage
                                                         src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                                         alt={city.location}
                                                         className="w-full h-full object-cover"
@@ -272,8 +319,10 @@ export default function HomepageBanner() {
                     </div>
 
                     {loading ? (
-                        <div className="text-center py-12 text-gray-500">
-                            Loading best cities...
+                        <div className="flex gap-6 overflow-x-hidden">
+                            {[...Array(3)].map((_, index) => (
+                                <CityCardSkeleton key={index} />
+                            ))}
                         </div>
                     ) : (
                         <div
@@ -287,7 +336,7 @@ export default function HomepageBanner() {
                                     onClick={() => handleCityClick(city?.location)}
                                     className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64 hover:shadow-2xl transition-shadow"
                                 >
-                                    <img
+                                    <LazyImage
                                         src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                         alt={city.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"

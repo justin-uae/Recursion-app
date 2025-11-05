@@ -3,6 +3,8 @@ import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
+import { PopularToursSkeletonLoader } from './Skeletons/PopularToursSkeletonLoader';
+import { LazyImage } from './LazyImage';
 
 export default function PopularTours() {
     const navigate = useNavigate();
@@ -37,15 +39,27 @@ export default function PopularTours() {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center py-20 text-gray-600">
-                Loading excursions...
-            </div>
-        );
+        return <PopularToursSkeletonLoader />;
     }
 
     return (
         <div className="bg-white py-16">
+            <style>{`
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+
+                .animate-pulse {
+                    animation: shimmer 2s infinite;
+                    background-size: 1000px 100%;
+                }
+            `}</style>
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-10">
@@ -80,7 +94,7 @@ export default function PopularTours() {
                         >
                             {/* Image */}
                             <div className="relative h-64 rounded-2xl overflow-hidden mb-4">
-                                <img
+                                <LazyImage
                                     src={`${tour.images[0]}?width=600&height=500&crop=center`}
                                     alt={tour.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
+import { LoadingStateWithSkeleton } from '../components/Skeletons/AllExcursionSkeleton';
+import { LazyImage } from '../components/LazyImage';
 
 interface Product {
     id: string;
@@ -101,11 +103,27 @@ const ViewAllExcursion = () => {
     };
 
     if (loading) {
-        return <LoadingState />;
+        return <LoadingStateWithSkeleton />;
     }
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <style>{`
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+
+                .animate-pulse {
+                    animation: shimmer 2s infinite;
+                    background-size: 1000px 100%;
+                }
+            `}</style>
+
             {/* Hero Section */}
             <HeroSection
                 searchQuery={searchQuery}
@@ -324,23 +342,19 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
     const navigate = useNavigate();
 
     const goToDetail = (productId: string) => {
-
         const numericId = productId.split('/').pop() || productId;
         navigate(`/excursion/${numericId}`);
     };
 
     return (
-        <div
-            className="bg-white cursor-pointer rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group"
-        >
+        <div className="bg-white cursor-pointer rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
             <div className="relative h-56 overflow-hidden"
                 onClick={() => goToDetail(excursion.id)}
             >
-                <img
+                <LazyImage
                     src={`${excursion.images[0]}?width=400&height=300&crop=center`}
                     alt={excursion.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
                 />
 
                 {/* Location Badge */}
@@ -424,11 +438,6 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
                                 <span className="text-sm font-semibold text-gray-500">AED</span>
                                 {excursion.price}
                             </p>
-                            {/* {excursion.price && (
-                                <p className="text-sm text-gray-400 line-through">
-                                    {Math.round(((60) / (excursion.price + 60)) * 100)}% OFF
-                                </p>
-                            )} */}
                         </div>
                         <p className="text-xs text-gray-500">per person</p>
                     </div>
@@ -442,16 +451,6 @@ const ExcursionCard = ({ excursion }: { excursion: Product }) => {
         </div>
     );
 };
-
-// Loading State
-const LoadingState = () => (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">Loading experiences...</p>
-        </div>
-    </div>
-);
 
 // Empty State
 const EmptyState = ({ clearFilters }: any) => (

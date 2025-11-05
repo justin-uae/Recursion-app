@@ -4,6 +4,8 @@ import { Heart, Share2, MapPin, Clock, Users, Calendar, Check, Star, ChevronLeft
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
+import { LazyImage } from './LazyImage';
+import { BookingSkeleton, DetailsSkeleton, ImageGallerySkeleton } from './Skeletons/ItemDetailPage';
 
 export default function ItemDetailpage() {
     const { id } = useParams<{ id: string }>();
@@ -101,8 +103,47 @@ export default function ItemDetailpage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-gray-600">
-                Loading excursion details...
+            <div className="min-h-screen bg-white">
+                {/* Custom Styles for Date Picker */}
+                <style>{`
+                    @keyframes shimmer {
+                        0% {
+                            background-position: -1000px 0;
+                        }
+                        100% {
+                            background-position: 1000px 0;
+                        }
+                    }
+
+                    .animate-pulse {
+                        animation: shimmer 2s infinite;
+                        background-size: 1000px 100%;
+                    }
+                `}</style>
+
+                {/* Breadcrumb Skeleton */}
+                <div className="border-b">
+                    <div className="max-w-7xl mx-auto px-6 py-4">
+                        <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-64" />
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-6 py-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        {/* Left Column - Skeletons */}
+                        <div className="lg:col-span-2 space-y-8">
+                            <ImageGallerySkeleton />
+                            <DetailsSkeleton />
+                        </div>
+
+                        {/* Right Column - Skeleton */}
+                        <div className="lg:col-span-1">
+                            <div className="sticky top-8">
+                                <BookingSkeleton />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -158,6 +199,20 @@ export default function ItemDetailpage() {
                     pointer-events: none;
                     color: #3B82F6;
                 }
+
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+
+                .animate-pulse {
+                    animation: shimmer 2s infinite;
+                    background-size: 1000px 100%;
+                }
             `}</style>
 
             {/* Breadcrumb */}
@@ -180,7 +235,7 @@ export default function ItemDetailpage() {
                         {/* Image Gallery */}
                         <div className="relative">
                             <div className="relative aspect-[16/10] rounded-3xl overflow-hidden">
-                                <img
+                                <LazyImage
                                     src={excursion.images[currentImageIndex]}
                                     alt={excursion.title}
                                     className="w-full h-full object-cover"
@@ -215,7 +270,11 @@ export default function ItemDetailpage() {
                                             : 'opacity-60 hover:opacity-100'
                                             } transition-all`}
                                     >
-                                        <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                                        <LazyImage
+                                            src={image}
+                                            alt={`Thumbnail ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </button>
                                 ))}
                             </div>
