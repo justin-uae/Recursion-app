@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
 import { PopularToursSkeletonLoader } from './Skeletons/PopularToursSkeletonLoader';
-import { LazyImage } from './LazyImage';
 
 export default function PopularTours() {
     const navigate = useNavigate();
@@ -68,6 +67,17 @@ export default function PopularTours() {
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
                 }
+
+                /* Fix for mobile tour image display */
+                .tour-card-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                    min-height: 100%;
+                    min-width: 100%;
+                }
             `}</style>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -105,11 +115,16 @@ export default function PopularTours() {
                             onClick={() => goToDetail(tour.id)}
                         >
                             {/* Image */}
-                            <div className="relative h-56 sm:h-60 md:h-64 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4">
-                                <LazyImage
-                                    src={`${tour.images[0]}?width=600&height=500&crop=center`}
+                            <div className="relative h-56 sm:h-60 md:h-64 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4 bg-gray-200">
+                                <img
+                                    src={tour.images[0]}
                                     alt={tour.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    className="tour-card-image group-hover:scale-105 transition-transform duration-300"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        console.error('Tour image failed to load:', tour.images[0]);
+                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600';
+                                    }}
                                 />
 
                                 {/* Price Badge */}

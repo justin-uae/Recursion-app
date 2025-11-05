@@ -7,7 +7,6 @@ import { getMediaUrls } from '../services/shopifyService';
 import { BannerSkeleton } from './Skeletons/BannerSkeleton';
 import { LocationSelectorSkeleton } from './Skeletons/LocationSelectorSkeleton';
 import { BestCitiesSkeleton } from './Skeletons/BestCitiesSkeleton';
-import { LazyImage } from './LazyImage';
 import { CityCardSkeleton } from './Skeletons/CityCardSkeleton';
 
 export default function HomepageBanner() {
@@ -164,53 +163,84 @@ export default function HomepageBanner() {
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
                 }
+
+                /* Fix for mobile image display */
+                .banner-image-container {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    background-color: #1e293b;
+                }
+
+                .banner-image-container img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                }
+
+                .city-card-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                    display: block;
+                    min-height: 100%;
+                }
             `}</style>
 
             {/* Hero Banner */}
-            <div className="relative h-64 sm:h-80 md:h-96">
-                <div className="absolute inset-0 overflow-hidden">
+            <div className="relative h-64 sm:h-80 md:h-96 bg-gray-900">
+                <div className="absolute inset-0 overflow-hidden banner-image-container">
                     {loadingBanners ? (
                         <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse"></div>
                     ) : currentBannerImage ? (
                         <>
-                            <LazyImage
-                                src={`${currentBannerImage}?width=900&height=900`}
+                            <img
+                                src={currentBannerImage}
                                 alt="Banner"
-                                className="w-full h-full object-cover transition-opacity duration-500"
+                                className="w-full h-full object-cover object-center"
+                                style={{ minHeight: '100%', minWidth: '100%' }}
+                                onError={(e) => {
+                                    console.error('Banner image failed to load:', currentBannerImage);
+                                    e.currentTarget.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200';
+                                }}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-teal-900/40 via-blue-900/30 to-purple-900/30"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-teal-800/25 via-blue-800/20 to-purple-800/20"></div>
                         </>
                     ) : (
                         <>
-                            <LazyImage
-                                src="https://wallpaperaccess.com/full/646452.jpg"
-                                alt="Jeddah"
-                                className="w-full h-full object-cover"
+                            <img
+                                src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1200"
+                                alt="Dubai"
+                                className="w-full h-full object-cover object-center"
+                                style={{ minHeight: '100%', minWidth: '100%' }}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-teal-800/25 via-blue-800/20 to-purple-800/20"></div>
                         </>
                     )}
                 </div>
 
-                <div className="absolute inset-0 flex items-center">
+                <div className="absolute inset-0 flex items-center z-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 w-full">
                         <div className="max-w-2xl">
                             {/* Title - Responsive Text Sizes */}
-                            <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-1 sm:mb-2">
+                            <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-1 sm:mb-2 drop-shadow-lg">
                                 MOST POPULAR
                             </h1>
 
                             {/* Subtitle */}
                             <div className="mb-4 sm:mb-6">
-                                <p className="text-white text-base sm:text-lg md:text-xl">Things To Do in</p>
-                                <h2 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold border-b-2 sm:border-b-4 border-white inline-block pb-0.5 sm:pb-1">
+                                <p className="text-white text-base sm:text-lg md:text-xl drop-shadow-lg">Things To Do in</p>
+                                <h2 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold border-b-2 sm:border-b-4 border-white inline-block pb-0.5 sm:pb-1 drop-shadow-lg">
                                     UAE
                                 </h2>
                             </div>
 
                             {/* Button */}
                             <Link to={"/excursions"}>
-                                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded transition-colors">
+                                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded transition-colors shadow-lg">
                                     View All
                                 </button>
                             </Link>
@@ -255,11 +285,15 @@ export default function HomepageBanner() {
                                                 }}
                                                 className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
-                                                <div className="w-full h-20 sm:h-24 rounded-lg overflow-hidden">
-                                                    <LazyImage
-                                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
+                                                <div className="w-full h-20 sm:h-24 rounded-lg overflow-hidden bg-gray-200">
+                                                    <img
+                                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400'}
                                                         alt={city.location}
-                                                        className="w-full h-full object-cover"
+                                                        className="w-full h-full object-cover object-center"
+                                                        style={{ minHeight: '100%', minWidth: '100%' }}
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400';
+                                                        }}
                                                     />
                                                 </div>
                                                 <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">{city?.location}</span>
@@ -312,16 +346,20 @@ export default function HomepageBanner() {
                                 <button
                                     key={index}
                                     onClick={() => handleCityClick(city?.location)}
-                                    className="relative min-w-[220px] sm:min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-48 sm:h-56 md:h-64 hover:shadow-2xl transition-shadow flex-shrink-0"
+                                    className="relative min-w-[220px] sm:min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-48 sm:h-56 md:h-64 hover:shadow-2xl transition-shadow flex-shrink-0 bg-gray-200"
                                 >
-                                    <LazyImage
-                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
+                                    <img
+                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800'}
                                         alt={city.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        className="city-card-image group-hover:scale-110 transition-transform duration-300"
+                                        style={{ minHeight: '100%', minWidth: '100%' }}
+                                        onError={(e) => {
+                                            e.currentTarget.src = 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800';
+                                        }}
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
                                     <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4">
-                                        <h3 className="text-white text-lg sm:text-xl md:text-2xl font-bold">{city?.location}</h3>
+                                        <h3 className="text-white text-lg sm:text-xl md:text-2xl font-bold drop-shadow-lg">{city?.location}</h3>
                                     </div>
                                 </button>
                             ))}
