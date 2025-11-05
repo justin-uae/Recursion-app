@@ -43,7 +43,7 @@ export default function PopularTours() {
     }
 
     return (
-        <div className="bg-white py-16">
+        <div className="bg-white py-8 sm:py-12 md:py-16">
             <style>{`
                 @keyframes shimmer {
                     0% {
@@ -58,24 +58,36 @@ export default function PopularTours() {
                     animation: shimmer 2s infinite;
                     background-size: 1000px 100%;
                 }
+
+                /* Hide scrollbar for all browsers */
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+                
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
             `}</style>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-4xl font-bold text-gray-900">Popular Tours</h2>
-                    <div className="flex gap-2">
+                <div className="flex items-center justify-between mb-6 sm:mb-8 md:mb-10">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Popular Tours</h2>
+                    <div className="hidden sm:flex gap-2">
                         <button
                             onClick={() => scroll('left')}
-                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors"
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 md:p-3 transition-colors"
+                            aria-label="Scroll left"
                         >
-                            <ChevronLeft className="w-5 h-5 text-gray-700" />
+                            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
                         </button>
                         <button
                             onClick={() => scroll('right')}
-                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-colors"
+                            className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 md:p-3 transition-colors"
+                            aria-label="Scroll right"
                         >
-                            <ChevronRight className="w-5 h-5 text-gray-700" />
+                            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
                         </button>
                     </div>
                 </div>
@@ -83,17 +95,17 @@ export default function PopularTours() {
                 {/* Tours Scrollable Row */}
                 <div
                     ref={scrollRef}
-                    className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth"
+                    className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
                     style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none' }}
                 >
                     {topTours.map((tour) => (
                         <div
                             key={tour.id}
-                            className="group cursor-pointer min-w-[250px] md:min-w-[300px] lg:min-w-[280px] flex-shrink-0"
+                            className="group cursor-pointer min-w-[240px] sm:min-w-[260px] md:min-w-[300px] lg:min-w-[280px] flex-shrink-0"
                             onClick={() => goToDetail(tour.id)}
                         >
                             {/* Image */}
-                            <div className="relative h-64 rounded-2xl overflow-hidden mb-4">
+                            <div className="relative h-56 sm:h-60 md:h-64 rounded-xl sm:rounded-2xl overflow-hidden mb-3 sm:mb-4">
                                 <LazyImage
                                     src={`${tour.images[0]}?width=600&height=500&crop=center`}
                                     alt={tour.title}
@@ -101,38 +113,36 @@ export default function PopularTours() {
                                 />
 
                                 {/* Price Badge */}
-                                <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2">
-                                    <div className="flex items-center gap-2">
-                                        {tour.price && (
-                                            <div className="flex items-baseline gap-3 mb-2">
-                                                {/* Original (Strikethrough) Price */}
-                                                <span className="text-sm text-gray-500 line-through">
-                                                    <span className="text-sm font-semibold text-gray-500">AED</span>
-                                                    {tour.price + 60}
-                                                </span>
-                                                {/* Discount Percentage */}
-                                                <span className="text-lg font-bold text-gray-900">
-                                                    ${tour.price}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
+                                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 bg-white/95 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 shadow-md">
+                                    {tour.price && (
+                                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                                            {/* Original (Strikethrough) Price */}
+                                            <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                                <span className="font-semibold">AED</span>
+                                                {tour.price + 60}
+                                            </span>
+                                            {/* Current Price */}
+                                            <span className="text-base sm:text-lg font-bold text-gray-900">
+                                                AED {tour.price}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Content */}
                             <div className="px-1">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm text-gray-500">{tour.location}</span>
-                                    <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                        <span className="text-sm font-semibold text-gray-900">
+                                <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                                    <span className="text-xs sm:text-sm text-gray-500 truncate max-w-[60%]">{tour.location}</span>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+                                        <span className="text-xs sm:text-sm font-semibold text-gray-900">
                                             {tour.rating.toFixed(1)}
                                         </span>
                                     </div>
                                 </div>
 
-                                <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
                                     {tour.title}
                                 </h3>
                             </div>
@@ -141,9 +151,9 @@ export default function PopularTours() {
                 </div>
 
                 {/* View All Button */}
-                <div className="text-center mt-12">
+                <div className="text-center mt-8 sm:mt-10 md:mt-12">
                     <Link to={"/excursions"}>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-full transition-colors">
+                        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base rounded-full transition-colors shadow-md hover:shadow-lg">
                             View All Tours
                         </button>
                     </Link>

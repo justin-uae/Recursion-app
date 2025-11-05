@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { Heart, Share2, MapPin, Clock, Users, Calendar, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
@@ -25,7 +25,6 @@ export default function ItemDetailpage() {
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
     const [adults, setAdults] = useState(2);
     const [children, setChildren] = useState(0);
-    const [isFavorite, setIsFavorite] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [addingToCart, setAddingToCart] = useState(false);
 
@@ -123,22 +122,22 @@ export default function ItemDetailpage() {
 
                 {/* Breadcrumb Skeleton */}
                 <div className="border-b">
-                    <div className="max-w-7xl mx-auto px-6 py-4">
-                        <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-64" />
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-48 sm:w-64" />
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-6 py-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-12">
                         {/* Left Column - Skeletons */}
-                        <div className="lg:col-span-2 space-y-8">
+                        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
                             <ImageGallerySkeleton />
                             <DetailsSkeleton />
                         </div>
 
                         {/* Right Column - Skeleton */}
                         <div className="lg:col-span-1">
-                            <div className="sticky top-8">
+                            <div className="sticky top-4 sm:top-8">
                                 <BookingSkeleton />
                             </div>
                         </div>
@@ -150,7 +149,7 @@ export default function ItemDetailpage() {
 
     if (!excursion) {
         return (
-            <div className="min-h-screen flex items-center justify-center text-gray-600">
+            <div className="min-h-screen flex items-center justify-center text-gray-600 px-4">
                 Excursion not found.
             </div>
         );
@@ -217,24 +216,24 @@ export default function ItemDetailpage() {
 
             {/* Breadcrumb */}
             <div className="border-b">
-                <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto whitespace-nowrap">
                         <Link to="/" className="hover:text-blue-600">Home</Link>
                         <span> / </span>
                         <Link to="/excursions" className="hover:text-blue-600">Excursions</Link>
                         <span> / </span>
-                        <span className="text-gray-900">{excursion.title}</span>
+                        <span className="text-gray-900 truncate">{excursion.title}</span>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 md:gap-12">
                     {/* Left Column - Images & Details */}
-                    <div className="lg:col-span-2 space-y-8">
+                    <div className="lg:col-span-2 space-y-6 sm:space-y-8">
                         {/* Image Gallery */}
                         <div className="relative">
-                            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden">
+                            <div className="relative aspect-[16/10] rounded-2xl sm:rounded-3xl overflow-hidden">
                                 <LazyImage
                                     src={excursion.images[currentImageIndex]}
                                     alt={excursion.title}
@@ -243,29 +242,31 @@ export default function ItemDetailpage() {
 
                                 <button
                                     onClick={prevImage}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full transition-all"
+                                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full transition-all"
+                                    aria-label="Previous image"
                                 >
-                                    <ChevronLeft className="w-6 h-6 text-gray-900" />
+                                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-900" />
                                 </button>
                                 <button
                                     onClick={nextImage}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full transition-all"
+                                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-1.5 sm:p-2 rounded-full transition-all"
+                                    aria-label="Next image"
                                 >
-                                    <ChevronRight className="w-6 h-6 text-gray-900" />
+                                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-900" />
                                 </button>
 
-                                <div className="absolute bottom-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+                                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-black/50 backdrop-blur-sm text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
                                     {currentImageIndex + 1} / {excursion.images.length}
                                 </div>
                             </div>
 
                             {/* Thumbnails */}
-                            <div className="flex gap-3 mt-4">
+                            <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4 overflow-x-auto pb-2">
                                 {excursion.images.map((image: string, index: number) => (
                                     <button
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
-                                        className={`relative w-20 h-20 rounded-lg overflow-hidden ${index === currentImageIndex
+                                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden flex-shrink-0 ${index === currentImageIndex
                                             ? 'ring-2 ring-blue-600'
                                             : 'opacity-60 hover:opacity-100'
                                             } transition-all`}
@@ -282,69 +283,58 @@ export default function ItemDetailpage() {
 
                         {/* Title & Details */}
                         <div>
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                            <div className="flex items-start justify-between mb-3 sm:mb-4 gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
                                         {excursion.title}
                                     </h1>
-                                    <div className="flex items-center gap-6 text-gray-600">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-sm sm:text-base text-gray-600">
                                         {excursion.location && (
                                             <div className="flex items-center gap-2">
-                                                <MapPin className="w-5 h-5" />
-                                                <span>{excursion.location}</span>
+                                                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                                                <span className="truncate">{excursion.location}</span>
                                             </div>
                                         )}
                                         <div className="flex items-center gap-2">
-                                            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                                            <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400 flex-shrink-0" />
                                             <span className="font-semibold text-gray-900">
                                                 {excursion.rating?.toFixed(1)}
                                             </span>
-                                            <span>({excursion.reviewsCount} reviews)</span>
+                                            <span className="truncate">({excursion.reviewsCount} reviews)</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setIsFavorite(!isFavorite)}
-                                        className="p-3 rounded-full border border-gray-200 hover:border-gray-300 transition-colors"
-                                    >
-                                        <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-                                    </button>
-                                    <button className="p-3 rounded-full border border-gray-200 hover:border-gray-300 transition-colors">
-                                        <Share2 className="w-6 h-6 text-gray-600" />
-                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Quick Info */}
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                                <Clock className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-gray-900 mb-1">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                            <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
+                                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1.5 sm:mb-2" />
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">
                                     {excursion.duration || 'N/A'}
                                 </div>
-                                <div className="text-sm text-gray-600">Duration</div>
+                                <div className="text-xs sm:text-sm text-gray-600">Duration</div>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                                <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-gray-900 mb-1">
+                            <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
+                                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1.5 sm:mb-2" />
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">
                                     {excursion.groupSize || 'N/A'}
                                 </div>
-                                <div className="text-sm text-gray-600">Group Size</div>
+                                <div className="text-xs sm:text-sm text-gray-600">Group Size</div>
                             </div>
-                            <div className="bg-gray-50 rounded-2xl p-6 text-center">
-                                <Calendar className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                                <div className="text-2xl font-bold text-gray-900 mb-1">Daily</div>
-                                <div className="text-sm text-gray-600">Availability</div>
+                            <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
+                                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1.5 sm:mb-2" />
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1">Daily</div>
+                                <div className="text-xs sm:text-sm text-gray-600">Availability</div>
                             </div>
                         </div>
 
                         {/* Description */}
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Overview</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Overview</h2>
                             <div
-                                className="text-gray-700 leading-relaxed"
+                                className="text-sm sm:text-base text-gray-700 leading-relaxed prose prose-sm sm:prose max-w-none"
                                 dangerouslySetInnerHTML={{ __html: excursion.descriptionHtml }}
                             />
                         </div>
@@ -352,14 +342,14 @@ export default function ItemDetailpage() {
                         {/* What's Included */}
                         {excursion.whatsIncluded?.length > 0 && (
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-4">What's Included</h2>
-                                <div className="space-y-3">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">What's Included</h2>
+                                <div className="space-y-2.5 sm:space-y-3">
                                     {excursion.whatsIncluded.map((item: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-3">
-                                            <div className="bg-blue-100 rounded-full p-1 mt-0.5">
-                                                <Check className="w-4 h-4 text-blue-600" />
+                                        <div key={i} className="flex items-start gap-2.5 sm:gap-3">
+                                            <div className="bg-blue-100 rounded-full p-1 mt-0.5 flex-shrink-0">
+                                                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                                             </div>
-                                            <span className="text-gray-700">{item}</span>
+                                            <span className="text-sm sm:text-base text-gray-700">{item}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -369,15 +359,15 @@ export default function ItemDetailpage() {
 
                     {/* Right Column - Booking */}
                     <div className="lg:col-span-1">
-                        <div className="sticky top-8">
-                            <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg">
+                        <div className="sticky top-4 sm:top-8">
+                            <div className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 shadow-lg">
                                 {/* Price */}
-                                <div className="mb-6">
+                                <div className="mb-5 sm:mb-6">
                                     {excursion.price && (
-                                        <div className="flex items-baseline gap-3 mb-2">
+                                        <div className="flex items-baseline gap-2 sm:gap-3 mb-2">
                                             {/* Original (Strikethrough) Price */}
-                                            <span className="text-sm text-gray-500 line-through">
-                                                <span className="text-sm font-semibold text-gray-500">AED</span>
+                                            <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                                <span className="font-semibold">AED</span>
                                                 {excursion.price + 60}
                                             </span>
                                             {/* Discount Percentage */}
@@ -386,29 +376,29 @@ export default function ItemDetailpage() {
                                             </span>
                                         </div>
                                     )}
-                                    <div className="text-4xl font-bold text-gray-900">
+                                    <div className="text-3xl sm:text-4xl font-bold text-gray-900">
                                         <span className="text-sm font-semibold text-gray-500">AED</span>
                                         {excursion.price}
                                     </div>
-                                    <div className="text-sm text-gray-600 mt-1">per person</div>
+                                    <div className="text-xs sm:text-sm text-gray-600 mt-1">per person</div>
                                 </div>
 
                                 {/* Date Selection */}
-                                <div className="space-y-4 mb-6">
+                                <div className="space-y-3.5 sm:space-y-4 mb-5 sm:mb-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2">
                                             Select Date
                                         </label>
 
                                         {/* Date Display Box */}
-                                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-3 border-2 border-blue-200">
-                                            <div className="flex items-center gap-3">
-                                                <div className="bg-blue-600 rounded-lg p-2">
-                                                    <Calendar className="w-5 h-5 text-white" />
+                                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-2.5 sm:mb-3 border-2 border-blue-200">
+                                            <div className="flex items-center gap-2 sm:gap-3">
+                                                <div className="bg-blue-600 rounded-lg p-1.5 sm:p-2 flex-shrink-0">
+                                                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                                                 </div>
-                                                <div className="flex-1">
-                                                    <div className="text-xs text-gray-600 mb-1">Selected Date</div>
-                                                    <div className="text-sm font-bold text-gray-900">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-xs text-gray-600 mb-0.5 sm:mb-1">Selected Date</div>
+                                                    <div className="text-xs sm:text-sm font-bold text-gray-900 truncate">
                                                         {formatDateDisplay(selectedDate)}
                                                     </div>
                                                 </div>
@@ -422,33 +412,35 @@ export default function ItemDetailpage() {
                                                 value={selectedDate}
                                                 onChange={(e) => setSelectedDate(e.target.value)}
                                                 min={getTodayDate()}
-                                                className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-gray-900 hover:border-blue-400 cursor-pointer"
+                                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 sm:pr-12 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium text-sm sm:text-base text-gray-900 hover:border-blue-400 cursor-pointer"
                                             />
-                                            <Calendar className="calendar-icon w-5 h-5" />
+                                            <Calendar className="calendar-icon w-4 h-4 sm:w-5 sm:h-5" />
                                         </div>
                                     </div>
 
                                     {/* Guests */}
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-900 mb-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-2">
                                             Guests
                                         </label>
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                                             <div>
                                                 <label className="block text-xs text-gray-600 mb-1">Adults</label>
-                                                <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
+                                                <div className="flex items-center border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
                                                     <button
                                                         onClick={() => setAdults(Math.max(1, adults - 1))}
-                                                        className="px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700"
+                                                        className="px-2.5 sm:px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700 text-sm sm:text-base"
                                                         type="button"
+                                                        aria-label="Decrease adults"
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="flex-1 text-center font-bold text-gray-900">{adults}</span>
+                                                    <span className="flex-1 text-center font-bold text-gray-900 text-sm sm:text-base">{adults}</span>
                                                     <button
                                                         onClick={() => setAdults(adults + 1)}
-                                                        className="px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700"
+                                                        className="px-2.5 sm:px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700 text-sm sm:text-base"
                                                         type="button"
+                                                        aria-label="Increase adults"
                                                     >
                                                         +
                                                     </button>
@@ -456,27 +448,29 @@ export default function ItemDetailpage() {
                                             </div>
                                             <div>
                                                 <label className="block text-xs text-gray-600 mb-1">Children</label>
-                                                <div className="flex items-center border-2 border-gray-200 rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
+                                                <div className="flex items-center border-2 border-gray-200 rounded-lg sm:rounded-xl overflow-hidden hover:border-blue-400 transition-colors">
                                                     <button
                                                         onClick={() => setChildren(Math.max(0, children - 1))}
-                                                        className="px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700"
+                                                        className="px-2.5 sm:px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700 text-sm sm:text-base"
                                                         type="button"
+                                                        aria-label="Decrease children"
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="flex-1 text-center font-bold text-gray-900">{children}</span>
+                                                    <span className="flex-1 text-center font-bold text-gray-900 text-sm sm:text-base">{children}</span>
                                                     <button
                                                         onClick={() => setChildren(children + 1)}
-                                                        className="px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700"
+                                                        className="px-2.5 sm:px-3 py-2 hover:bg-blue-50 transition-colors font-bold text-gray-700 text-sm sm:text-base"
                                                         type="button"
+                                                        aria-label="Increase children"
                                                     >
                                                         +
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="mt-3 flex items-center gap-2 text-sm">
-                                            <Users className="w-4 h-4 text-blue-600" />
+                                        <div className="mt-2.5 sm:mt-3 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                                            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0" />
                                             <span className="text-gray-700">
                                                 Total: <span className="font-bold text-gray-900">{totalGuests}</span> {totalGuests === 1 ? 'guest' : 'guests'}
                                             </span>
@@ -485,21 +479,21 @@ export default function ItemDetailpage() {
                                 </div>
 
                                 {/* Total */}
-                                <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                                    <div className="flex items-center justify-between mb-2">
+                                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3.5 sm:p-4 mb-5 sm:mb-6">
+                                    <div className="flex items-center justify-between mb-2 text-xs sm:text-sm">
                                         <span className="text-gray-600">
                                             Subtotal ({totalGuests} {totalGuests === 1 ? 'guest' : 'guests'})
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            <span className="text-sm font-semibold text-gray-500">AED</span>
+                                            <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span>
                                             {subtotal.toFixed(2)}
                                         </span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-2 mt-2">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-lg font-bold text-gray-900">Total</span>
-                                            <span className="text-2xl font-bold text-blue-600">
-                                                <span className="text-sm font-semibold text-gray-500">AED</span>
+                                            <span className="text-base sm:text-lg font-bold text-gray-900">Total</span>
+                                            <span className="text-xl sm:text-2xl font-bold text-blue-600">
+                                                <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span>
                                                 {subtotal.toFixed(2)}</span>
                                         </div>
                                     </div>
@@ -508,28 +502,28 @@ export default function ItemDetailpage() {
                                 <button
                                     onClick={handleBookNow}
                                     disabled={addingToCart}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-blue-500/30"
+                                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-blue-500/30"
                                 >
                                     {addingToCart ? 'Adding to Cart...' : 'Book Now →'}
                                 </button>
 
-                                <p className="text-xs text-center text-gray-500 mt-4">
+                                <p className="text-xs text-center text-gray-500 mt-3 sm:mt-4">
                                     Free cancellation up to 24 hours before
                                 </p>
                             </div>
 
                             {/* Trust Badges */}
-                            <div className="mt-6 bg-gray-50 rounded-2xl p-6">
-                                <div className="text-center mb-4">
-                                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                            <div className="mt-4 sm:mt-6 bg-gray-50 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                                <div className="text-center mb-3 sm:mb-4">
+                                    <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
                                         {excursion.rating?.toFixed(1)}/5
                                     </div>
-                                    <div className="flex items-center justify-center gap-1 mb-1">
+                                    <div className="flex items-center justify-center gap-0.5 sm:gap-1 mb-1">
                                         {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                            <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
                                         ))}
                                     </div>
-                                    <div className="text-sm text-gray-600">
+                                    <div className="text-xs sm:text-sm text-gray-600">
                                         Based on {excursion.reviewsCount} reviews
                                     </div>
                                 </div>
