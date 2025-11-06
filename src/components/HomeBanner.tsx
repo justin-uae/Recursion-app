@@ -54,19 +54,6 @@ export default function HomepageBanner() {
         }
     }, [bannerUrls.length]);
 
-    // Handle banner navigation
-    const handleBannerNext = () => {
-        if (bannerUrls.length > 0) {
-            setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
-        }
-    };
-
-    const handleBannerPrev = () => {
-        if (bannerUrls.length > 0) {
-            setCurrentBannerIndex((prev) => (prev - 1 + bannerUrls.length) % bannerUrls.length);
-        }
-    };
-
     // Get current banner image
     const currentBannerImage = bannerUrls[currentBannerIndex] || '';
 
@@ -115,7 +102,7 @@ export default function HomepageBanner() {
     return (
         <div className="relative">
             {/* Hero Banner */}
-            <div className="relative h-96">
+            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[28rem]">
                 <div className="absolute inset-0 overflow-hidden">
                     {loadingBanners ? (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -124,9 +111,7 @@ export default function HomepageBanner() {
                     ) : currentBannerImage ? (
                         <>
                             <img
-                                // src={currentBannerImage}
                                 src={`${currentBannerImage}?width=900&height=900`}
-
                                 alt="Banner"
                                 className="w-full h-full object-cover transition-opacity duration-500"
                             />
@@ -145,60 +130,26 @@ export default function HomepageBanner() {
                 </div>
 
                 <div className="absolute inset-0 flex items-center">
-                    <div className="max-w-7xl mx-auto px-8 w-full">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                         <div className="max-w-2xl">
-                            <h1 className="text-white text-5xl md:text-6xl font-bold mb-2">
+                            <h1 className="text-white text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-2">
                                 MOST POPULAR
                             </h1>
-                            <div className="mb-6">
-                                <p className="text-white text-xl">Things To Do in</p>
-                                <h2 className="text-white text-5xl md:text-6xl font-bold border-b-4 border-white inline-block pb-1">
+                            <div className="mb-4 sm:mb-6">
+                                <p className="text-white text-lg sm:text-xl md:text-2xl">Things To Do in</p>
+                                <h2 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold border-b-4 border-white inline-block pb-1">
                                     UAE
                                 </h2>
                             </div>
                             <Link to={"/excursions"}>
                                 <button
-                                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-8 py-3 rounded transition-colors">
+                                    className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-4 py-2 sm:px-6 sm:py-2.5 md:px-8 md:py-3 rounded transition-colors text-sm sm:text-base">
                                     View All
                                 </button>
                             </Link>
                         </div>
                     </div>
                 </div>
-
-                {/* Navigation Arrows */}
-                {bannerUrls.length > 1 && (
-                    <>
-                        <button
-                            onClick={handleBannerPrev}
-                            className="absolute right-20 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:bg-gray-100"
-                        >
-                            <ChevronLeft className="w-6 h-6 text-gray-700" />
-                        </button>
-                        <button
-                            onClick={handleBannerNext}
-                            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:bg-gray-100"
-                        >
-                            <ChevronRight className="w-6 h-6 text-gray-700" />
-                        </button>
-                    </>
-                )}
-
-                {/* Banner Indicators */}
-                {bannerUrls.length > 1 && (
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-                        {bannerUrls.map((_: string, index: number) => (
-                            <button
-                                key={index}
-                                onClick={() => setCurrentBannerIndex(index)}
-                                className={`w-2 h-2 rounded-full transition-all ${index === currentBannerIndex
-                                    ? 'bg-white w-8'
-                                    : 'bg-white/50 hover:bg-white/75'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
 
             {/* Location Selector */}
@@ -251,11 +202,11 @@ export default function HomepageBanner() {
             </div>
 
             {/* Best Cities to Visit Section */}
-            <div className="bg-white py-12">
-                <div className="max-w-7xl mx-auto px-8">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-3xl font-bold text-gray-900">Best Cities to Visit</h2>
-                        <div className="flex gap-2">
+            <div className="bg-white py-8 sm:py-12 md:py-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between mb-6 sm:mb-8 md:mb-10">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Best Cities to Visit</h2>
+                        <div className="hidden sm:flex gap-2">
                             <button
                                 onClick={() => scroll('left')}
                                 className="bg-white border-2 border-gray-300 rounded-full p-2 hover:border-gray-400 transition-colors"
