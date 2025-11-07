@@ -6,6 +6,7 @@ import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
 import { LazyImage } from './LazyImage';
 import { BookingSkeleton, DetailsSkeleton, ImageGallerySkeleton } from './Skeletons/ItemDetailPage';
+import { FaWhatsapp } from 'react-icons/fa';
 
 export default function ItemDetailpage() {
     const { id } = useParams<{ id: string }>();
@@ -61,6 +62,33 @@ export default function ItemDetailpage() {
             day: 'numeric',
             year: 'numeric'
         });
+    };
+
+    const handleWhatsAppInquiry = () => {
+        if (!excursion) return;
+
+        const phoneNumber = `${import.meta.env.VITE_CONTACT_NUMBER}`; // UAE format: 971 + number without leading zero
+        console.log("phoneNumber",phoneNumber);
+
+        const message = `Hi! I'm interested in booking this excursion:
+
+    📍 *${excursion.title}*
+    ${excursion.location ? `📌 Location: ${excursion.location}` : ''}
+
+    *Booking Details:*
+    📅 Date: ${formatDateDisplay(selectedDate)}
+    👥 Adults: ${adults}
+    👶 Children: ${children}
+    🎟️ Total Guests: ${totalGuests}
+
+    💰 Total Price: AED ${subtotal.toFixed(2)}
+
+    Can you help me with the booking?`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+        window.open(whatsappUrl, '_blank');
     };
 
     // Handle Book Now
@@ -499,13 +527,22 @@ export default function ItemDetailpage() {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={handleBookNow}
-                                    disabled={addingToCart}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-blue-500/30"
-                                >
-                                    {addingToCart ? 'Adding to Cart...' : 'Book Now →'}
-                                </button>
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={handleBookNow}
+                                        disabled={addingToCart}
+                                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-blue-500/30"
+                                    >
+                                        {addingToCart ? 'Adding to Cart...' : 'Book Now →'}
+                                    </button>
+                                    <button
+                                        onClick={handleWhatsAppInquiry}
+                                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-all transform hover:scale-105 shadow-lg shadow-green-500/30 flex items-center justify-center gap-2"
+                                    >
+                                        Inquire via WhatsApp
+                                        <FaWhatsapp className="w-5 h-5" />
+                                    </button>
+                                </div>
 
                                 <p className="text-xs text-center text-gray-500 mt-3 sm:mt-4">
                                     Free cancellation up to 24 hours before
