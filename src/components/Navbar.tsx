@@ -48,8 +48,6 @@ export default function Navbar() {
         };
     }, [showUserMenu]);
 
-    // Click-outside handler for mobile menu
-
     const handleLogout = () => {
         dispatch(logout());
         setShowUserMenu(false);
@@ -72,10 +70,12 @@ export default function Navbar() {
                                 <span>info@excursionsdubai.com</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-3 h-3" />
-                            <span className="hidden sm:inline">Dubai Marina, UAE</span>
-                            <span className="sm:hidden">UAE</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-3 h-3" />
+                                <span className="hidden sm:inline">Dubai Marina, UAE</span>
+                                <span className="sm:hidden">UAE</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -133,16 +133,13 @@ export default function Navbar() {
                                 Contact
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
                             </Link>
-                            <div
-                                className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group"
-                            >
-                                <CurrencySwitcher />
-                            </div>
-
                         </div>
 
                         {/* Right Side - User Menu or Login */}
                         <div className="hidden lg:flex items-center gap-4">
+                            <div className="border-r border-gray-200 pr-4">
+                                <CurrencySwitcher />
+                            </div>
                             <Link
                                 to="/cart"
                                 className="relative p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -238,7 +235,7 @@ export default function Navbar() {
 
                     {/* Mobile Navigation */}
                     {isMenuOpen && (
-                        <div className="lg:hidden pb-4 border-t"> {/* Add ref here */}
+                        <div className="lg:hidden pb-4 border-t">
                             <div className="flex flex-col space-y-1 pt-4">
                                 <Link
                                     to="/"
@@ -268,11 +265,11 @@ export default function Navbar() {
                                 >
                                     Contact
                                 </Link>
-                                <div
-                                    className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-colors"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <CurrencySwitcher />
+                                <div className="py-3 px-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg my-2">
+                                    <p className="text-xs font-semibold text-gray-600 uppercase mb-2">Currency</p>
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                        <CurrencySwitcher />
+                                    </div>
                                 </div>
 
                                 <div className="border-t pt-4 mt-4 px-4 space-y-3">
