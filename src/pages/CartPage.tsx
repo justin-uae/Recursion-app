@@ -11,7 +11,7 @@ export const CartPageComplete: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const { items } = useAppSelector((state) => state.cart);
     const { loading: checkoutLoading, success: checkoutSuccess } = useAppSelector((state) => state.checkout);
 
@@ -20,8 +20,8 @@ export const CartPageComplete: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
-        phone: '',
+        email: user?.email || '',
+        phone: '+971',
     });
 
     // Calculate totals with useMemo for performance
@@ -56,6 +56,20 @@ export const CartPageComplete: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        if (name === 'phone') {
+            // Ensure +971 prefix is always there
+            if (!value.startsWith('+971')) {
+                setFormData(prev => ({ ...prev, [name]: '+971' }));
+                return;
+            }
+
+            // Only allow numbers after +971, max 13 characters (+971 + 9 digits)
+            const phoneRegex = /^\+971[0-9]{0,9}$/;
+            if (phoneRegex.test(value) || value === '+971') {
+                setFormData(prev => ({ ...prev, [name]: value }));
+            }
+            return;
+        }
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -428,6 +442,9 @@ export const CartPageComplete: React.FC = () => {
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
                                     />
+                                    <p className="text-gray-500 text-xs mt-1">
+                                        Using your account email
+                                    </p>
                                 </div>
 
                                 <div>
@@ -438,9 +455,14 @@ export const CartPageComplete: React.FC = () => {
                                         value={formData.phone}
                                         onChange={handleInputChange}
                                         placeholder="+971 50 123 4567"
+                                        pattern="^\+971[0-9]{9}$"
+                                        title="Please enter a valid UAE phone number (9 digits after +971)"
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
                                     />
+                                    <p className="text-gray-500 text-xs mt-1">
+                                        Enter 9 digits after +971
+                                    </p>
                                 </div>
                             </div>
 
