@@ -7,6 +7,7 @@ import { addToCartAsync } from '../slices/cartSlice';
 import { LazyImage } from './LazyImage';
 import { BookingSkeleton, DetailsSkeleton, ImageGallerySkeleton } from './Skeletons/ItemDetailPage';
 import { FaWhatsapp } from 'react-icons/fa';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function ItemDetailpage() {
     const { id } = useParams<{ id: string }>();
@@ -15,6 +16,8 @@ export default function ItemDetailpage() {
 
     // Get product and cart state from Redux
     const { selectedProduct: excursion, loading } = useAppSelector((state) => state.products);
+    const { formatPrice } = useCurrency();
+
     const { checkout } = useAppSelector((state) => state.cart);
 
     // Get today's date in YYYY-MM-DD format
@@ -50,7 +53,9 @@ export default function ItemDetailpage() {
     };
 
     const totalGuests = adults + children;
-    const subtotal = excursion && excursion?.price * totalGuests || 0;
+
+    const pricePerPerson = excursion?.price || 0; // This is in AED from Shopify
+    const subtotal = formatPrice(pricePerPerson * totalGuests);
 
     // Format date for display
     const formatDateDisplay = (dateString: string) => {
@@ -68,7 +73,7 @@ export default function ItemDetailpage() {
         if (!excursion) return;
 
         const phoneNumber = `${import.meta.env.VITE_CONTACT_NUMBER}`; // UAE format: 971 + number without leading zero
-        console.log("phoneNumber",phoneNumber);
+        console.log("phoneNumber", phoneNumber);
 
         const message = `Hi! I'm interested in booking this excursion:
 
@@ -81,7 +86,7 @@ export default function ItemDetailpage() {
     👶 Children: ${children}
     🎟️ Total Guests: ${totalGuests}
 
-    💰 Total Price: AED ${subtotal.toFixed(2)}
+    💰 Total Price: AED ${subtotal}
 
     Can you help me with the booking?`;
 
@@ -103,7 +108,7 @@ export default function ItemDetailpage() {
                         variantId: excursion.variants[0].id,
                         quantity: totalGuests,
                         title: `${excursion.title} - ${selectedDate}`,
-                        price: excursion.price,
+                        price: excursion?.price,
                         image: excursion.images[0],
                         productId: excursion.id,
                         customAttributes: {
@@ -395,8 +400,8 @@ export default function ItemDetailpage() {
                                         <div className="flex items-baseline gap-2 sm:gap-3 mb-2">
                                             {/* Original (Strikethrough) Price */}
                                             <span className="text-xs sm:text-sm text-gray-500 line-through">
-                                                <span className="font-semibold">AED</span>
-                                                {excursion.price + 60}
+                                                {/* <span className="font-semibold"></span> */}
+                                                {formatPrice(excursion.price + 60)}
                                             </span>
                                             {/* Discount Percentage */}
                                             <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">
@@ -405,8 +410,8 @@ export default function ItemDetailpage() {
                                         </div>
                                     )}
                                     <div className="text-3xl sm:text-4xl font-bold text-gray-900">
-                                        <span className="text-sm font-semibold text-gray-500">AED</span>
-                                        {excursion.price}
+                                        {/* <span className="text-sm font-semibold text-gray-500">AED</span> */}
+                                        {formatPrice(excursion.price)}
                                     </div>
                                     <div className="text-xs sm:text-sm text-gray-600 mt-1">per person</div>
                                 </div>
@@ -513,16 +518,16 @@ export default function ItemDetailpage() {
                                             Subtotal ({totalGuests} {totalGuests === 1 ? 'guest' : 'guests'})
                                         </span>
                                         <span className="font-semibold text-gray-900">
-                                            <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span>
-                                            {subtotal.toFixed(2)}
+                                            {/* <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span> */}
+                                            {subtotal}
                                         </span>
                                     </div>
                                     <div className="border-t border-gray-200 pt-2 mt-2">
                                         <div className="flex items-center justify-between">
                                             <span className="text-base sm:text-lg font-bold text-gray-900">Total</span>
                                             <span className="text-xl sm:text-2xl font-bold text-blue-600">
-                                                <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span>
-                                                {subtotal.toFixed(2)}</span>
+                                                {/* <span className="text-xs sm:text-sm font-semibold text-gray-500">AED</span> */}
+                                                {subtotal}</span>
                                         </div>
                                     </div>
                                 </div>

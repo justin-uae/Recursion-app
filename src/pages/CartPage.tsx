@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowRight, Calendar, Users, Loader, Trash2, Plus, Minus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { createOrder } from '../slices/checkoutSlice';
 import { clearCart, removeFromCart, updateQuantity } from '../slices/cartSlice';
+import { useCurrency } from '../hooks/useCurrency';
 
 type CheckoutStep = 'cart' | 'checkout';
 
@@ -14,23 +15,43 @@ export const CartPageComplete: React.FC = () => {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const { items } = useAppSelector((state) => state.cart);
     const { loading: checkoutLoading, success: checkoutSuccess } = useAppSelector((state) => state.checkout);
+    // Currency hook
+    const { formatPrice, convertPrice, selectedCurrency } = useCurrency();
 
     const [currentStep, setCurrentStep] = useState<CheckoutStep>('cart');
     const [submitted, setSubmitted] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         name: '',
-        email: user?.email || '',
+        email: '',
         phone: '+971',
     });
 
-    // Calculate totals with useMemo for performance
+    // Pre-fill email when user data is available
+    useEffect(() => {
+        if (user?.email) {
+            setFormData(prev => ({ ...prev, email: user.email }));
+        }
+    }, [user?.email]);
+
+    // Calculate totals with currency conversion
     const totalPrice = useMemo(() => {
-        return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    }, [items]);
+        return items.reduce((sum, item) => {
+            const convertedPrice = convertPrice(item.price);
+            return sum + (convertedPrice * item.quantity);
+        }, 0);
+    }, [items, convertPrice]);
 
     const tax = useMemo(() => totalPrice * 0.05, [totalPrice]);
     const finalTotal = useMemo(() => totalPrice + tax, [totalPrice, tax]);
+
+    // Calculate AED totals for order submission (always send AED to Shopify)
+    const totalPriceAED = useMemo(() => {
+        return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    }, [items]);
+
+    const taxAED = useMemo(() => totalPriceAED * 0.05, [totalPriceAED]);
+    const finalTotalAED = useMemo(() => totalPriceAED + taxAED, [totalPriceAED, taxAED]);
 
     const handleRemoveItem = (variantId: string) => {
         dispatch(removeFromCart(variantId));
@@ -82,11 +103,11 @@ export const CartPageComplete: React.FC = () => {
             return;
         }
 
-        // Prepare line items for order
+        // Prepare line items for order - ALWAYS send AED prices to Shopify
         const lineItems = items.map((item) => ({
             variantId: item.variantId,
             quantity: item.quantity,
-            price: item.price,
+            price: item.price, // Keep original AED price
             title: item.title,
             customAttributes: item.customAttributes
                 ? [
@@ -94,8 +115,11 @@ export const CartPageComplete: React.FC = () => {
                     { key: 'Adults', value: item.customAttributes.adults || '0' },
                     { key: 'Children', value: item.customAttributes.children || '0' },
                     { key: 'Total Guests', value: item.customAttributes.totalGuests || '0' },
+                    { key: 'Display Currency', value: selectedCurrency.code },
                 ]
-                : undefined,
+                : [
+                    { key: 'Display Currency', value: selectedCurrency.code }
+                ],
         }));
 
         // Create order through Redux
@@ -105,8 +129,8 @@ export const CartPageComplete: React.FC = () => {
                 email: formData.email,
                 phone: formData.phone,
                 lineItems,
-                note: 'Online Booking',
-                tags: ['Online Booking'],
+                note: `Online Booking - Customer viewed prices in ${selectedCurrency.code}`,
+                tags: ['Online Booking', `Currency: ${selectedCurrency.code}`],
             })
         );
 
@@ -153,7 +177,7 @@ export const CartPageComplete: React.FC = () => {
                     </p>
 
                     {/* Info Cards */}
-                    <div className="space-y-3 mb-8">
+                    {/* <div className="space-y-3 mb-8">
                         <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
                             <p className="text-gray-500 text-xs mb-1">Booking For</p>
                             <p className="text-gray-800 font-semibold text-sm">{formData.name}</p>
@@ -161,14 +185,19 @@ export const CartPageComplete: React.FC = () => {
 
                         <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
                             <p className="text-gray-500 text-xs mb-1">Total to Pay</p>
-                            <p className="text-2xl font-bold text-blue-600">AED {finalTotal.toFixed(2)}</p>
+                            <p className="text-2xl font-bold text-blue-600">{formatPrice(finalTotal)}</p>
+                            {selectedCurrency.code !== 'AED' && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    (AED {finalTotalAED.toFixed(2)} at checkout)
+                                </p>
+                            )}
                         </div>
 
                         <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
                             <p className="text-gray-500 text-xs mb-1">Items</p>
                             <p className="text-gray-800 font-semibold text-sm">{items.length} booking{items.length !== 1 ? 's' : ''}</p>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Status Message */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
@@ -248,8 +277,8 @@ export const CartPageComplete: React.FC = () => {
                                     key={item.variantId}
                                     className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow"
                                 >
-                                    <div className="flex flex-col justify-center items-center sm:flex-row gap-6 ">
-                                        <div className="w-full sm:w-32 h-32  flex items-center  rounded-lg">
+                                    <div className="flex flex-col justify-center items-center sm:flex-row gap-6">
+                                        <div className="w-full sm:w-32 h-32 flex items-center rounded-lg">
                                             <img src={item?.image} alt={`Thumbnail`} className="w-full h-full object-contain" />
                                         </div>
 
@@ -261,7 +290,7 @@ export const CartPageComplete: React.FC = () => {
                                                         {item.title}
                                                     </h3>
                                                     <p className="text-blue-600 font-bold text-lg">
-                                                        AED {item.price.toFixed(2)}
+                                                        {formatPrice(item.price)}
                                                     </p>
                                                 </div>
                                                 <button
@@ -329,7 +358,7 @@ export const CartPageComplete: React.FC = () => {
                                                 <span className="ml-auto text-right">
                                                     <p className="text-gray-600 text-sm">Subtotal</p>
                                                     <p className="text-xl font-bold text-blue-600">
-                                                        AED {(item.price * item.quantity).toFixed(2)}
+                                                        {formatPrice(item.price * item.quantity)}
                                                     </p>
                                                 </span>
                                             </div>
@@ -355,18 +384,23 @@ export const CartPageComplete: React.FC = () => {
                                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-gray-200 mb-6">
                                     <div className="flex justify-between text-gray-600">
                                         <span>Subtotal</span>
-                                        <span>AED {totalPrice.toFixed(2)}</span>
+                                        <span>{selectedCurrency?.symbol}{totalPrice.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-600">
                                         <span>VAT (5%)</span>
-                                        <span>AED {tax.toFixed(2)}</span>
+                                        <span>{selectedCurrency?.symbol}{tax.toFixed(2)}</span>
                                     </div>
                                     <div className="border-t border-gray-300 pt-3 flex justify-between items-center">
                                         <span className="text-lg font-bold text-gray-800">Total</span>
                                         <span className="text-2xl font-extrabold text-blue-600">
-                                            AED {finalTotal.toFixed(2)}
+                                            {selectedCurrency?.symbol}{finalTotal.toFixed(2)}
                                         </span>
                                     </div>
+                                    {selectedCurrency.code !== 'AED' && (
+                                        <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
+                                            ≈ AED {finalTotalAED.toFixed(2)} at checkout
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button
@@ -439,12 +473,15 @@ export const CartPageComplete: React.FC = () => {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         placeholder="your@email.com"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50"
                                         required
+                                        readOnly={!!user?.email}
                                     />
-                                    <p className="text-gray-500 text-xs mt-1">
-                                        Using your account email
-                                    </p>
+                                    {user?.email && (
+                                        <p className="text-gray-500 text-xs mt-1">
+                                            Using your account email
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -467,7 +504,7 @@ export const CartPageComplete: React.FC = () => {
                             </div>
 
                             {/* Payment Info */}
-                            <div className="mt-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6">
+                            <div className="mt-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6">
                                 <h3 className="text-lg font-semibold text-blue-700 mb-2">💳 Payment</h3>
                                 <p className="text-gray-600 text-sm leading-relaxed">
                                     ✓ Secure payment processing<br />
@@ -512,7 +549,7 @@ export const CartPageComplete: React.FC = () => {
                                                 <p className="text-gray-500 text-sm">× {item.quantity}</p>
                                             </div>
                                             <p className="text-blue-600 font-semibold">
-                                                AED {(item.price * item.quantity).toFixed(2)}
+                                                {formatPrice(item.price * item.quantity)}
                                             </p>
                                         </div>
 
@@ -546,18 +583,23 @@ export const CartPageComplete: React.FC = () => {
                             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-gray-200">
                                 <div className="flex justify-between text-gray-600">
                                     <span>Subtotal</span>
-                                    <span>AED {totalPrice.toFixed(2)}</span>
+                                    <span>{selectedCurrency?.symbol}{totalPrice.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
                                     <span>VAT (5%)</span>
-                                    <span>AED {tax.toFixed(2)}</span>
+                                    <span>{selectedCurrency?.symbol}{tax.toFixed(2)}</span>
                                 </div>
                                 <div className="border-t border-gray-300 pt-3 flex justify-between items-center">
                                     <span className="text-lg font-bold text-gray-800">Total</span>
                                     <span className="text-2xl font-extrabold text-blue-600">
-                                        AED {finalTotal.toFixed(2)}
+                                        {selectedCurrency?.symbol}{finalTotal.toFixed(2)}
                                     </span>
                                 </div>
+                                {selectedCurrency.code !== 'AED' && (
+                                    <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
+                                        You'll pay AED {finalTotalAED.toFixed(2)}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

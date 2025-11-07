@@ -3,13 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Menu, X, Phone, Mail, MapPin, LogOut, User as UserIcon, Calendar } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { logout } from '../slices/authSlice';
+import { CurrencySwitcher } from './CurrencySwitcher';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
-    const mobileMenuRef = useRef<HTMLDivElement>(null); // Add ref for mobile menu
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -49,26 +49,6 @@ export default function Navbar() {
     }, [showUserMenu]);
 
     // Click-outside handler for mobile menu
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            // Check if click is outside mobile menu AND outside the hamburger button
-            if (
-                mobileMenuRef.current && 
-                !mobileMenuRef.current.contains(event.target as Node) &&
-                !(event.target as Element).closest('button[aria-label="mobile-menu-button"]')
-            ) {
-                setIsMenuOpen(false);
-            }
-        };
-
-        if (isMenuOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isMenuOpen]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -153,6 +133,12 @@ export default function Navbar() {
                                 Contact
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
                             </Link>
+                            <div
+                                className="text-gray-700 hover:text-blue-600 font-medium transition-colors relative group"
+                            >
+                                <CurrencySwitcher />
+                            </div>
+
                         </div>
 
                         {/* Right Side - User Menu or Login */}
@@ -252,7 +238,7 @@ export default function Navbar() {
 
                     {/* Mobile Navigation */}
                     {isMenuOpen && (
-                        <div className="lg:hidden pb-4 border-t" ref={mobileMenuRef}> {/* Add ref here */}
+                        <div className="lg:hidden pb-4 border-t"> {/* Add ref here */}
                             <div className="flex flex-col space-y-1 pt-4">
                                 <Link
                                     to="/"
@@ -275,7 +261,6 @@ export default function Navbar() {
                                 >
                                     About Us
                                 </Link>
-
                                 <Link
                                     to="/contact"
                                     className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-colors"
@@ -283,6 +268,12 @@ export default function Navbar() {
                                 >
                                     Contact
                                 </Link>
+                                <div
+                                    className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-medium py-3 px-4 rounded-lg transition-colors"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <CurrencySwitcher />
+                                </div>
 
                                 <div className="border-t pt-4 mt-4 px-4 space-y-3">
                                     {isAuthenticated ? (

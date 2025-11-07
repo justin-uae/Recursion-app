@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
 
 import { BrandedFallback } from './components/LoadingFallback';
 import { initializeAuth } from './slices/authSlice';
 import ScrollToTop from './helper/ScrollToTop';
+import { fetchExchangeRates } from './slices/currencySlice';
+import { useAppDispatch } from './hooks/useRedux';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -23,10 +24,23 @@ const ViewAllExcursion = lazy(() => import('./pages/ViewAllExcursion'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 function App() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
+    // Initialize auth on app load
     dispatch(initializeAuth() as any);
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Fetch exchange rates on app load
+    dispatch(fetchExchangeRates());
+
+    // Refresh rates every 1 hour
+    const interval = setInterval(() => {
+      dispatch(fetchExchangeRates());
+    }, 60 * 60 * 1000); // 1 hour
+
+    return () => clearInterval(interval);
   }, [dispatch]);
 
   return (

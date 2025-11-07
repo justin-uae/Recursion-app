@@ -4,10 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchAllExcursions } from '../slices/productsSlice';
 import { PopularToursSkeletonLoader } from './Skeletons/PopularToursSkeletonLoader';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function PopularTours() {
     const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { formatPrice } = useCurrency();
 
     const dispatch = useAppDispatch();
     const { products: tours, loading } = useAppSelector((state) => state.products);
@@ -96,12 +98,12 @@ export default function PopularTours() {
                                         <div className="flex flex-col">
                                             {/* Original (Strikethrough) Price */}
                                             <span className="text-[10px] sm:text-xs text-gray-500 line-through leading-tight">
-                                                <span className="font-semibold">AED </span>
-                                                {tour.price + 60}
+                                                {/* <span className="font-semibold">{selectedCurrency?.symbol} </span> */}
+                                                {formatPrice(tour.price + 60)}
                                             </span>
                                             {/* Current Price */}
                                             <span className="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-tight">
-                                                AED {tour.price}
+                                                {formatPrice(tour.price)}
                                             </span>
                                         </div>
                                     )}
