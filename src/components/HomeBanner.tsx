@@ -12,6 +12,7 @@ export default function HomepageBanner() {
     const [bannerUrls, setBannerUrls] = useState<string[]>([]);
     const [loadingBanners, setLoadingBanners] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null); // Add this ref
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate()
@@ -21,6 +22,22 @@ export default function HomepageBanner() {
     useEffect(() => {
         dispatch(fetchCollectionsWithProducts());
     }, [dispatch]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowLocationDropdown(false);
+            }
+        };
+
+        if (showLocationDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showLocationDropdown]);
 
     // Fetch banner URLs from media IDs
     useEffect(() => {
@@ -155,7 +172,7 @@ export default function HomepageBanner() {
             {/* Location Selector */}
             <div className="relative -mt-8 z-50 px-4">
                 <div className="max-w-md mx-auto">
-                    <div className="relative">
+                    <div className="relative" ref={dropdownRef}>
                         <button
                             onClick={() => setShowLocationDropdown(!showLocationDropdown)}
                             className="w-full bg-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-3 hover:shadow-xl transition-shadow border-2 border-gray-200"
