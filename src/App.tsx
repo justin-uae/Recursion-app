@@ -6,6 +6,7 @@ import { initializeAuth } from './slices/authSlice';
 import ScrollToTop from './helper/ScrollToTop';
 import { fetchExchangeRates } from './slices/currencySlice';
 import { useAppDispatch } from './hooks/useRedux';
+import { WhatsAppButton } from './components/WhatsAppButton';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -89,6 +90,7 @@ function App() {
           <Route path='*' element={<FallbackPage />} />
         </Routes>
         <Footer />
+        <WhatsAppButton />
       </Suspense>
     </BrowserRouter>
   );
