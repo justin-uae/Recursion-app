@@ -6,7 +6,7 @@ import { initializeAuth } from './slices/authSlice';
 import ScrollToTop from './helper/ScrollToTop';
 import { fetchExchangeRates } from './slices/currencySlice';
 import { useAppDispatch } from './hooks/useRedux';
-import { WhatsAppButton } from './components/WhatsAppButton';
+// import { WhatsAppButton } from './components/WhatsAppButton';
 import { SimpleChatbot } from './components/SimpleChatbot';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
@@ -91,7 +91,7 @@ function App() {
           <Route path='*' element={<FallbackPage />} />
         </Routes>
         <Footer />
-        <WhatsAppButton />
+        {/* <WhatsAppButton /> */}
         <SimpleChatbot />
       </Suspense>
     </BrowserRouter>
