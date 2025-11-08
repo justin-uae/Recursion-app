@@ -7,6 +7,7 @@ import ScrollToTop from './helper/ScrollToTop';
 import { fetchExchangeRates } from './slices/currencySlice';
 import { useAppDispatch } from './hooks/useRedux';
 import { WhatsAppButton } from './components/WhatsAppButton';
+import { SimpleChatbot } from './components/SimpleChatbot';
 
 const ExcursionsDubaiHero = lazy(() => import('./components/ExcursionsDubaiHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -91,6 +92,7 @@ function App() {
         </Routes>
         <Footer />
         <WhatsAppButton />
+        <SimpleChatbot />
       </Suspense>
     </BrowserRouter>
   );
