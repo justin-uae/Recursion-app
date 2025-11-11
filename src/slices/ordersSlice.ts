@@ -12,7 +12,11 @@ interface Order {
     id: string;
     orderNumber: number;
     date: string;
+    subtotal: number;
+    tax: number;
+    shipping: number;
     total: number;
+    currencyCode: string;
     status: string;
     items: OrderItem[];
 }

@@ -60,21 +60,27 @@ interface Customer {
   id: string;
 }
 
-interface Order {
-  id: string;
-  orderNumber: number;
-  date: string;
-  total: number;
-  status: string;
-  items: OrderItem[];
-}
-
 interface OrderItem {
   title: string;
   quantity: number;
   price: number;
   image?: string;
 }
+
+interface Order {
+  id: string;
+  orderNumber: number;
+  date: string;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
+  currencyCode: string;
+  status: string;
+  items: OrderItem[];
+}
+
+
 
 export const getAllCityCollections = async (): Promise<{
   id: string;
@@ -688,7 +694,7 @@ export const getCustomerOrders = async (customerAccessToken: string): Promise<Or
   const query = `
     query GetCustomerOrders($customerAccessToken: String!) {
       customer(customerAccessToken: $customerAccessToken) {
-        orders(first: 20) {
+        orders(first: 20, sortKey: PROCESSED_AT, reverse: true) {
           edges {
             node {
               id
@@ -698,7 +704,20 @@ export const getCustomerOrders = async (customerAccessToken: string): Promise<Or
                 amount
                 currencyCode
               }
+              subtotalPriceV2 {
+                amount
+                currencyCode
+              }
+              totalTaxV2 {
+                amount
+                currencyCode
+              }
+              totalShippingPriceV2 {
+                amount
+                currencyCode
+              }
               fulfillmentStatus
+              financialStatus
               lineItems(first: 10) {
                 edges {
                   node {
@@ -707,9 +726,11 @@ export const getCustomerOrders = async (customerAccessToken: string): Promise<Or
                     variant {
                       priceV2 {
                         amount
+                        currencyCode
                       }
                       image {
                         url
+                        altText
                       }
                     }
                   }
@@ -726,12 +747,20 @@ export const getCustomerOrders = async (customerAccessToken: string): Promise<Or
     variables: { customerAccessToken }
   });
 
+  if (!data.customer) {
+    throw new Error('Customer not found or invalid access token');
+  }
+
   return data.customer.orders.edges.map((edge: any) => ({
     id: edge.node.id,
     orderNumber: edge.node.orderNumber,
     date: edge.node.processedAt,
+    subtotal: parseFloat(edge.node.subtotalPriceV2?.amount || edge.node.totalPriceV2.amount),
+    tax: parseFloat(edge.node.totalTaxV2?.amount || '0'),
+    shipping: parseFloat(edge.node.totalShippingPriceV2?.amount || '0'),
     total: parseFloat(edge.node.totalPriceV2.amount),
-    status: edge.node.fulfillmentStatus,
+    currencyCode: edge.node.totalPriceV2.currencyCode,
+    status: edge.node.fulfillmentStatus || edge.node.financialStatus,
     items: edge.node.lineItems.edges.map((item: any) => ({
       title: item.node.title,
       quantity: item.node.quantity,
