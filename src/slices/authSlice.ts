@@ -1,8 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { customerLogin, customerRegister } from '../services/shopifyService';
+import { customerLogin, customerRegister, getCustomerData } from '../services/shopifyService';
 
 interface User {
     email: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    createdAt?: string;
+    displayName?: string;
 }
 
 interface AuthState {
@@ -23,17 +27,32 @@ const initialState: AuthState = {
 
 // Async thunks
 export const loginUser = createAsyncThunk(
-    'auth/loginUser',
-    async (
-        { email, password }: { email: string; password: string },
-        { rejectWithValue }
-    ) => {
+    'auth/login',
+    async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
         try {
+            localStorage.clear();
             const response = await customerLogin(email, password);
-            return {
-                accessToken: response.accessToken,
-                user: { email },
-            };
+
+            // Fetch full customer data
+            try {
+                const customerData = await getCustomerData(response.accessToken);
+                return {
+                    accessToken: response.accessToken,
+                    user: {
+                        email: customerData.email,
+                        firstName: customerData.firstName,
+                        lastName: customerData.lastName,
+                        createdAt: customerData.createdAt,
+                        displayName: customerData.displayName
+                    }
+                };
+            } catch (error) {
+                // Fallback
+                return {
+                    accessToken: response.accessToken,
+                    user: { email }
+                };
+            }
         } catch (error) {
             return rejectWithValue((error as Error).message);
         }
@@ -57,6 +76,7 @@ export const registerUser = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
+            localStorage.clear();
             await customerRegister(email, password, firstName, lastName);
             // Auto-login after registration
             const loginResponse = await customerLogin(email, password);
@@ -78,10 +98,24 @@ export const initializeAuth = createAsyncThunk(
             const storedUser = localStorage.getItem('customerData');
 
             if (storedToken && storedUser) {
-                return {
-                    accessToken: storedToken,
-                    user: JSON.parse(storedUser),
-                };
+                // Validate token is still valid
+                try {
+                    const customerData = await getCustomerData(storedToken);
+                    return {
+                        accessToken: storedToken,
+                        user: {
+                            email: customerData.email,
+                            firstName: customerData.firstName,
+                            lastName: customerData.lastName,
+                            createdAt: customerData.createdAt,
+                            displayName: customerData.displayName
+                        }
+                    };
+                } catch (error) {
+                    // Token is invalid, clear everything
+                    localStorage.clear();
+                    return null;
+                }
             }
             return null;
         } catch (error) {
@@ -99,8 +133,7 @@ const authSlice = createSlice({
             state.accessToken = null;
             state.isAuthenticated = false;
             state.error = null;
-            localStorage.removeItem('customerAccessToken');
-            localStorage.removeItem('customerData');
+            localStorage.clear();
         },
         clearError: (state) => {
             state.error = null;

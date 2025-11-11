@@ -80,6 +80,14 @@ interface Order {
   items: OrderItem[];
 }
 
+export interface CustomerData {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  createdAt: string;
+  displayName: string;
+}
 
 
 export const getAllCityCollections = async (): Promise<{
@@ -654,6 +662,32 @@ export const removeCartLines = async (cartId: string, lineIds: string[]): Promis
   }
 
   return data.cartLinesRemove.cart;
+};
+
+//get customer data
+export const getCustomerData = async (customerAccessToken: string): Promise<CustomerData> => {
+  const query = `
+    query GetCustomer($customerAccessToken: String!) {
+      customer(customerAccessToken: $customerAccessToken) {
+        id
+        email
+        firstName
+        lastName
+        createdAt
+        displayName
+      }
+    }
+  `;
+
+  const { data } = await client.request(query, {
+    variables: { customerAccessToken }
+  });
+
+  if (!data.customer) {
+    throw new Error('Customer not found or invalid access token');
+  }
+
+  return data.customer;
 };
 
 // Customer login

@@ -4,6 +4,7 @@ import { ShoppingCart, Menu, X, Phone, Mail, MapPin, LogOut, User as UserIcon, C
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { logout } from '../slices/authSlice';
 import { CurrencySwitcher } from './CurrencySwitcher';
+import { clearOrders } from '../slices/ordersSlice';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,6 +50,7 @@ export default function Navbar() {
     }, [showUserMenu]);
 
     const handleLogout = () => {
+        dispatch(clearOrders());
         dispatch(logout());
         setShowUserMenu(false);
         navigate('/login');

@@ -1,10 +1,14 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { customerLogin, customerRegister } from '../services/shopifyService';
+import { customerLogin, customerRegister, getCustomerData } from '../services/shopifyService';
 
 // Types
 interface User {
   email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  createdAt?: string;
+  displayName?: string;
 }
 
 interface AuthResponse {
@@ -58,12 +62,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await customerLogin(email, password);
 
       setAccessToken(response.accessToken);
-      const userData: User = { email };
-      setUser(userData);
 
-      // Store in localStorage
+      // Fetch full customer data
+      try {
+        const customerData = await getCustomerData(response.accessToken);
+        const userData: User = {
+          email: customerData.email,
+          firstName: customerData.firstName,
+          lastName: customerData.lastName,
+          createdAt: customerData.createdAt,
+          displayName: customerData.displayName
+        };
+        setUser(userData);
+        localStorage.setItem('customerData', JSON.stringify(userData));
+      } catch (error) {
+        // Fallback if customer data fetch fails
+        const userData: User = { email };
+        setUser(userData);
+        localStorage.setItem('customerData', JSON.stringify(userData));
+      }
+
       localStorage.setItem('customerAccessToken', response.accessToken);
-      localStorage.setItem('customerData', JSON.stringify(userData));
 
       return { success: true };
     } catch (error) {
