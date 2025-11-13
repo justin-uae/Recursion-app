@@ -33,8 +33,8 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <a href="mailto:info@excursionsdubai.com" className="text-sm hover:text-blue-400 transition-colors break-all sm:break-normal">
-                  info@excursionsdubai.com
+                <a href="mailto:info@excursionsdubai.ae" className="text-sm hover:text-blue-400 transition-colors break-all sm:break-normal">
+                  info@excursionsdubai.ae
                 </a>
               </div>
             </div>

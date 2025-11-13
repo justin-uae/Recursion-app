@@ -69,7 +69,7 @@ export default function Navbar() {
                             </div>
                             <div className="hidden md:flex items-center gap-2">
                                 <Mail className="w-3 h-3" />
-                                <span>info@excursionsdubai.com</span>
+                                <span>info@excursionsdubai.ae</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
