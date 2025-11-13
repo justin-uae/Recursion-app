@@ -140,8 +140,8 @@ export default function ContactUsPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Phone</h3>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 4 123 4567</p>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 50 123 4567</p>
+                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 54561 3397</p>
+                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 54561 3397</p>
                                     </div>
                                 </div>
 
