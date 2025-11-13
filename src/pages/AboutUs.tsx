@@ -165,7 +165,7 @@ export default function AboutPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
                         <div className="p-5 sm:p-6 bg-white rounded-lg sm:rounded-xl shadow-sm border-2 border-blue-100">
                             <h4 className="font-bold text-sm sm:text-base text-gray-900 mb-1.5 sm:mb-2">Email</h4>
-                            <p className="text-xs sm:text-sm text-blue-600 font-semibold break-all">info@excursions.com</p>
+                            <p className="text-xs sm:text-sm text-blue-600 font-semibold break-all">info@excursionsdubai.ae</p>
                         </div>
                         <div className="p-5 sm:p-6 bg-white rounded-lg sm:rounded-xl shadow-sm border-2 border-blue-100">
                             <h4 className="font-bold text-sm sm:text-base text-gray-900 mb-1.5 sm:mb-2">Phone</h4>

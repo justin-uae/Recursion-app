@@ -151,8 +151,7 @@ export default function ContactUsPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Email</h3>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">info@excursionsdubai.com</p>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">support@excursionsdubai.com</p>
+                                        <p className="text-xs sm:text-sm text-gray-600 break-all">info@excursionsdubai.ae</p>
                                     </div>
                                 </div>
 
