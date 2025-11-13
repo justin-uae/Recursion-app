@@ -122,7 +122,7 @@ export default function HomepageBanner() {
             <div className="relative h-64 sm:h-80 md:h-96 lg:h-[28rem]">
                 <div className="absolute inset-0 overflow-hidden">
                     {loadingBanners ? (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <div className="w-full h-full flex items-center justify-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                         </div>
                     ) : currentBannerImage ? (
@@ -132,7 +132,7 @@ export default function HomepageBanner() {
                                 alt="Banner"
                                 className="w-full h-full object-cover transition-opacity duration-500"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                            {/* <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div> */}
                         </>
                     ) : (
                         <>
@@ -141,7 +141,7 @@ export default function HomepageBanner() {
                                 alt="Jeddah"
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div>
+                            {/* <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div> */}
                         </>
                     )}
                 </div>

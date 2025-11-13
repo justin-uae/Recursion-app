@@ -23,7 +23,7 @@ export default function Footer() {
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="text-sm text-center sm:text-left">Dubai Marina, UAE</span>
+                <span className="text-sm text-center sm:text-left">Hor Al Anz Building 101 , Dubai, UAE</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -57,8 +57,18 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-6 pt-6 border-t border-gray-800">
           <p className="text-center text-sm text-gray-400">
-            © 2025 Excursions Dubai. All rights reserved.
+            © 2025{' '}
+            <a
+              href="https://www.excursionsdubai.ae/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-gray-300"
+            >
+              Excursionsdubai.ae
+            </a>{' '}
+            is a trading style of Jetset Worldwide Travel & Tourism. All rights reserved.
           </p>
+
         </div>
       </div>
     </footer>

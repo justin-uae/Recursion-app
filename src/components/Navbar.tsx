@@ -75,7 +75,7 @@ export default function Navbar() {
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
                                 <MapPin className="w-3 h-3" />
-                                <span className="hidden sm:inline">Dubai Marina, UAE</span>
+                                <span className="hidden sm:inline">Hor Al Anz Building 101 , Dubai, UAE</span>
                                 <span className="sm:hidden">UAE</span>
                             </div>
                         </div>
