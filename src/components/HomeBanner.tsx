@@ -252,7 +252,7 @@ export default function HomepageBanner() {
             </div>
 
             {/* Location Selector */}
-            <div className="relative -mt-8 z-50 px-4">
+            <div className="relative -mt-8 z-40 px-4">
                 <div className="max-w-md mx-auto">
                     <div className="relative" ref={dropdownRef}>
                         <button
