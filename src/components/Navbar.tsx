@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { logout } from '../slices/authSlice';
 import { CurrencySwitcher } from './CurrencySwitcher';
 import { clearOrders } from '../slices/ordersSlice';
+import Logo from '../assets/Logo3.png'
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,10 +92,13 @@ export default function Navbar() {
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-3 group">
                             <div className="relative">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform">
-                                    <span className="text-white font-bold text-xl">E</span>
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform">
+                                    <img src={Logo}
+                                        alt="Excursions Dubai"
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full"></div>
+                                {/* <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full"></div> */}
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">

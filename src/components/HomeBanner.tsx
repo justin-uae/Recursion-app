@@ -162,7 +162,7 @@ export default function HomepageBanner() {
     return (
         <div className="relative">
             {/* Hero Banner */}
-            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[28rem] group">
+            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[30rem] group">
                 <div className="absolute inset-0 overflow-hidden">
                     {loadingBanners || !currentBannerImage ? (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30">
