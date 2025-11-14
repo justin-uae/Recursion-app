@@ -29,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    // Verify reCAPTCHA
+    // Verify reCAPTCHA v2 (simpler - no score checking!)
     if (!empty($recaptchaToken)) {
-        $recaptchaSecret = '6LeVRgwsAAAAAGheevsoWx95NwhGpq5FzmwDdHui';
+        $recaptchaSecret = '6LexTwwsAAAAAAfjAK_6WpDVGUej2djle6PdyYOJ'; // Your v2 secret key
         $recaptchaUrl = 'https://www.google.com/recaptcha/api/siteverify';
         
         $recaptchaData = array(
@@ -51,12 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $verify = file_get_contents($recaptchaUrl, false, $context);
         $recaptchaResponse = json_decode($verify);
         
-        // Check reCAPTCHA score (v3 returns a score between 0.0 and 1.0)
-        // if (!$recaptchaResponse->success || $recaptchaResponse->score < 0.3) {
-        //     http_response_code(400);
-        //     echo json_encode(['success' => false, 'message' => 'Bot detected. Please try again.']);
-        //     exit;
-        // }
+        // V2 is simple: just check success (no score!)
+        if (!$recaptchaResponse->success) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'reCAPTCHA verification failed. Please try again.']);
+            exit;
+        }
+    } else {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Please complete the reCAPTCHA']);
+        exit;
     }
     
     // Email configuration

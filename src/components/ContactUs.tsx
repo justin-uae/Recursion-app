@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import ReCAPTCHA from 'react-google-recaptcha';
 
-function ContactForm() {
+export default function ContactUsPage() {
     const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [responseMessage, setResponseMessage] = useState('');
     const [formData, setFormData] = useState({
@@ -10,8 +10,8 @@ function ContactForm() {
         email: '',
         message: ''
     });
-
-    const { executeRecaptcha } = useGoogleReCaptcha();
+    
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({
@@ -22,10 +22,13 @@ function ContactForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!executeRecaptcha) {
+        
+        // Get reCAPTCHA token
+        const recaptchaToken = recaptchaRef.current?.getValue();
+        
+        if (!recaptchaToken) {
             setFormStatus('error');
-            setResponseMessage('reCAPTCHA not loaded. Please refresh the page.');
+            setResponseMessage('Please complete the reCAPTCHA verification');
             return;
         }
 
@@ -33,12 +36,6 @@ function ContactForm() {
         setResponseMessage('');
 
         try {
-            // Execute reCAPTCHA
-            const recaptchaToken = await executeRecaptcha('contact_form');
-
-            console.log('reCAPTCHA Token:', recaptchaToken); // Debug log
-
-            // Send form data with reCAPTCHA token
             const response = await fetch('https://www.excursionsdubai.ae/contact-handler.php', {
                 method: 'POST',
                 headers: {
@@ -52,27 +49,29 @@ function ContactForm() {
 
             const data = await response.json();
 
-            console.log('Server Response:', data); // Debug log
-
             if (response.ok) {
                 setFormStatus('success');
                 setResponseMessage(data.message || 'Your message has been sent successfully!');
                 setFormData({ name: '', email: '', message: '' });
-
+                
+                // Reset reCAPTCHA
+                recaptchaRef.current?.reset();
+                
                 setTimeout(() => {
                     setFormStatus('idle');
                     setResponseMessage('');
                 }, 5000);
             } else {
                 setFormStatus('error');
-                // Show the debug info if available
-                const debugInfo = data.debug ? JSON.stringify(data.debug, null, 2) : '';
-                setResponseMessage(data.message + (debugInfo ? '\n\nDebug: ' + debugInfo : ''));
+                setResponseMessage(data.message || 'Something went wrong. Please try again.');
+                // Reset reCAPTCHA on error
+                recaptchaRef.current?.reset();
             }
         } catch (error) {
             console.error('Form submission error:', error);
             setFormStatus('error');
             setResponseMessage('Network error. Please check your connection and try again.');
+            recaptchaRef.current?.reset();
         }
     };
 
@@ -140,6 +139,15 @@ function ContactForm() {
                                 />
                             </div>
 
+                            {/* reCAPTCHA v2 Widget */}
+                            <div className="flex justify-center sm:justify-start">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    sitekey={import.meta.env.VITE_RECAPTCHA_V2_SITE_KEY}
+                                    theme="light"
+                                />
+                            </div>
+
                             <button
                                 type="submit"
                                 disabled={formStatus === 'loading'}
@@ -157,19 +165,6 @@ function ContactForm() {
                                     </>
                                 )}
                             </button>
-
-                            {/* reCAPTCHA Badge Notice */}
-                            <p className="text-xs text-gray-500 text-center">
-                                This site is protected by reCAPTCHA and the Google{' '}
-                                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                    Privacy Policy
-                                </a>{' '}
-                                and{' '}
-                                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                    Terms of Service
-                                </a>{' '}
-                                apply.
-                            </p>
                         </form>
 
                         {/* Status Messages */}
@@ -189,7 +184,7 @@ function ContactForm() {
                         )}
                     </div>
 
-                    {/* Contact Info - Keep your existing code */}
+                    {/* Contact Info */}
                     <div className="space-y-4 sm:space-y-6">
                         <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
                             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-5 sm:mb-6">Get in Touch</h2>
@@ -249,14 +244,5 @@ function ContactForm() {
                 </div>
             </div>
         </div>
-    );
-}
-
-// Wrap the component with GoogleReCaptchaProvider
-export default function ContactUsPage() {
-    return (
-        <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
-            <ContactForm />
-        </GoogleReCaptchaProvider>
     );
 }
