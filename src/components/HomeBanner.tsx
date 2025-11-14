@@ -12,7 +12,8 @@ export default function HomepageBanner() {
     const [bannerUrls, setBannerUrls] = useState<string[]>([]);
     const [loadingBanners, setLoadingBanners] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const dropdownRef = useRef<HTMLDivElement>(null); // Add this ref
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const autoRotateRef = useRef<any | null>(null);
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate()
@@ -63,13 +64,55 @@ export default function HomepageBanner() {
 
     // Auto-rotate banner every 5 seconds
     useEffect(() => {
-        if (bannerUrls.length > 0) {
-            const interval = setInterval(() => {
+        if (bannerUrls.length > 1) {
+            autoRotateRef.current = setInterval(() => {
                 setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
             }, 5000);
-            return () => clearInterval(interval);
+
+            return () => {
+                if (autoRotateRef.current) {
+                    clearInterval(autoRotateRef.current);
+                }
+            };
         }
     }, [bannerUrls.length]);
+
+    // Banner navigation functions
+    const goToPreviousBanner = () => {
+        // Reset auto-rotate timer
+        if (autoRotateRef.current) {
+            clearInterval(autoRotateRef.current);
+        }
+
+        setCurrentBannerIndex((prev) =>
+            prev === 0 ? bannerUrls.length - 1 : prev - 1
+        );
+
+        // Restart auto-rotate
+        if (bannerUrls.length > 1) {
+            autoRotateRef.current = setInterval(() => {
+                setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
+            }, 5000);
+        }
+    };
+
+    const goToNextBanner = () => {
+        // Reset auto-rotate timer
+        if (autoRotateRef.current) {
+            clearInterval(autoRotateRef.current);
+        }
+
+        setCurrentBannerIndex((prev) =>
+            (prev + 1) % bannerUrls.length
+        );
+
+        // Restart auto-rotate
+        if (bannerUrls.length > 1) {
+            autoRotateRef.current = setInterval(() => {
+                setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
+            }, 5000);
+        }
+    };
 
     // Get current banner image
     const currentBannerImage = bannerUrls[currentBannerIndex] || '';
@@ -119,32 +162,71 @@ export default function HomepageBanner() {
     return (
         <div className="relative">
             {/* Hero Banner */}
-            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[28rem]">
+            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[28rem] group">
                 <div className="absolute inset-0 overflow-hidden">
-                    {loadingBanners ? (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    {loadingBanners || !currentBannerImage ? (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                         </div>
-                    ) : currentBannerImage ? (
-                        <>
-                            <img
-                                src={`${currentBannerImage}?width=900&height=900`}
-                                alt="Banner"
-                                className="w-full h-full object-cover transition-opacity duration-500"
-                            />
-                            {/* <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div> */}
-                        </>
                     ) : (
                         <>
                             <img
-                                src="https://wallpaperaccess.com/full/646452.jpg"
-                                alt="Jeddah"
-                                className="w-full h-full object-cover"
+                                src={`${currentBannerImage}?width=1920&height=1080`}
+                                alt="Banner"
+                                className="w-full h-full object-cover transition-opacity duration-500"
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                }}
                             />
-                            {/* <div className="absolute inset-0 bg-gradient-to-r from-teal-700/40 via-blue-900/30 to-purple-900/30"></div> */}
                         </>
                     )}
                 </div>
+
+                {/* Banner Navigation Arrows - Only show if more than 1 banner */}
+                {bannerUrls.length > 1 && !loadingBanners && (
+                    <>
+                        {/* Left Arrow */}
+                        <button
+                            onClick={goToPreviousBanner}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 sm:p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100 z-10"
+                            aria-label="Previous banner"
+                        >
+                            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />
+                        </button>
+
+                        {/* Right Arrow */}
+                        <button
+                            onClick={goToNextBanner}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 sm:p-3 shadow-lg transition-all opacity-0 group-hover:opacity-100 z-10"
+                            aria-label="Next banner"
+                        >
+                            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />
+                        </button>
+
+                        {/* Banner Indicators/Dots */}
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                            {bannerUrls.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => {
+                                        setCurrentBannerIndex(index);
+                                        if (autoRotateRef.current) {
+                                            clearInterval(autoRotateRef.current);
+                                            autoRotateRef.current = setInterval(() => {
+                                                setCurrentBannerIndex((prev) => (prev + 1) % bannerUrls.length);
+                                            }, 5000);
+                                        }
+                                    }}
+                                    className={`w-2 h-2 rounded-full transition-all ${index === currentBannerIndex
+                                            ? 'bg-white w-8'
+                                            : 'bg-white/50 hover:bg-white/75'
+                                        }`}
+                                    aria-label={`Go to banner ${index + 1}`}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
 
                 <div className="absolute inset-0 flex items-center">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
