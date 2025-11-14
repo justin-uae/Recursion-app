@@ -1,43 +1,78 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-export default function ContactUsPage() {
-    const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle');
+function ContactForm() {
+    const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [responseMessage, setResponseMessage] = useState('');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         message: ''
     });
 
-    const handleChange = (e: any) => {
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
     };
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const FormspreeURL = `https://formspree.io/f/${import.meta.env.VITE_FORMSPREE_URL}`;
+
+        if (!executeRecaptcha) {
+            setFormStatus('error');
+            setResponseMessage('reCAPTCHA not loaded. Please refresh the page.');
+            return;
+        }
+
+        setFormStatus('loading');
+        setResponseMessage('');
 
         try {
-            const response = await fetch(FormspreeURL, {
+            // Execute reCAPTCHA
+            const recaptchaToken = await executeRecaptcha('contact_form');
+
+            console.log('reCAPTCHA Token:', recaptchaToken); // Debug log
+
+            // Send form data with reCAPTCHA token
+            const response = await fetch('https://www.excursionsdubai.ae/contact-handler.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    ...formData,
+                    recaptchaToken
+                })
             });
+
+            const data = await response.json();
+
+            console.log('Server Response:', data); // Debug log
 
             if (response.ok) {
                 setFormStatus('success');
+                setResponseMessage(data.message || 'Your message has been sent successfully!');
                 setFormData({ name: '', email: '', message: '' });
+
+                setTimeout(() => {
+                    setFormStatus('idle');
+                    setResponseMessage('');
+                }, 5000);
             } else {
                 setFormStatus('error');
+                // Show the debug info if available
+                const debugInfo = data.debug ? JSON.stringify(data.debug, null, 2) : '';
+                setResponseMessage(data.message + (debugInfo ? '\n\nDebug: ' + debugInfo : ''));
             }
         } catch (error) {
             console.error('Form submission error:', error);
             setFormStatus('error');
+            setResponseMessage('Network error. Please check your connection and try again.');
         }
     };
 
@@ -59,7 +94,7 @@ export default function ContactUsPage() {
                         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 md:space-y-6">
                             <div>
                                 <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-1.5 sm:mb-2">
-                                    Name
+                                    Name *
                                 </label>
                                 <input
                                     type="text"
@@ -67,14 +102,15 @@ export default function ContactUsPage() {
                                     value={formData.name}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    disabled={formStatus === 'loading'}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="Your name"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-1.5 sm:mb-2">
-                                    Email
+                                    Email *
                                 </label>
                                 <input
                                     type="email"
@@ -82,53 +118,78 @@ export default function ContactUsPage() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    disabled={formStatus === 'loading'}
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="your@email.com"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-1.5 sm:mb-2">
-                                    Message
+                                    Message *
                                 </label>
                                 <textarea
                                     name="message"
                                     value={formData.message}
                                     onChange={handleChange}
                                     required
+                                    disabled={formStatus === 'loading'}
                                     rows={5}
-                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                                     placeholder="How can we help you?"
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg"
+                                disabled={formStatus === 'loading'}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 sm:py-4 text-sm sm:text-base rounded-lg sm:rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-                                Send Message
+                                {formStatus === 'loading' ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        Send Message
+                                    </>
+                                )}
                             </button>
+
+                            {/* reCAPTCHA Badge Notice */}
+                            <p className="text-xs text-gray-500 text-center">
+                                This site is protected by reCAPTCHA and the Google{' '}
+                                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    Privacy Policy
+                                </a>{' '}
+                                and{' '}
+                                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    Terms of Service
+                                </a>{' '}
+                                apply.
+                            </p>
                         </form>
 
                         {/* Status Messages */}
                         {formStatus === 'success' && (
                             <div className="mt-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl">
                                 <p className="text-green-600 font-semibold text-sm sm:text-base">
-                                    ✅ Your message has been sent successfully!
+                                    ✅ {responseMessage}
                                 </p>
                             </div>
                         )}
                         {formStatus === 'error' && (
                             <div className="mt-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl">
                                 <p className="text-red-600 font-semibold text-sm sm:text-base">
-                                    ❌ Something went wrong. Please try again.
+                                    ❌ {responseMessage}
                                 </p>
                             </div>
                         )}
                     </div>
 
-                    {/* Contact Info */}
+                    {/* Contact Info - Keep your existing code */}
                     <div className="space-y-4 sm:space-y-6">
                         <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
                             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-5 sm:mb-6">Get in Touch</h2>
@@ -140,7 +201,9 @@ export default function ContactUsPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Phone</h3>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 54561 3397</p>
+                                        <a href="tel:+971545613397" className="text-xs sm:text-sm text-gray-600 hover:text-blue-600 transition-colors break-all">
+                                            +971 54561 3397
+                                        </a>
                                     </div>
                                 </div>
 
@@ -150,7 +213,9 @@ export default function ContactUsPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Email</h3>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">info@excursionsdubai.ae</p>
+                                        <a href="mailto:info@excursionsdubai.ae" className="text-xs sm:text-sm text-gray-600 hover:text-purple-600 transition-colors break-all">
+                                            info@excursionsdubai.ae
+                                        </a>
                                     </div>
                                 </div>
 
@@ -184,5 +249,14 @@ export default function ContactUsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Wrap the component with GoogleReCaptchaProvider
+export default function ContactUsPage() {
+    return (
+        <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+            <ContactForm />
+        </GoogleReCaptchaProvider>
     );
 }
