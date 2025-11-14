@@ -141,7 +141,6 @@ export default function ContactUsPage() {
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Phone</h3>
                                         <p className="text-xs sm:text-sm text-gray-600 break-all">+971 54561 3397</p>
-                                        <p className="text-xs sm:text-sm text-gray-600 break-all">+971 54561 3397</p>
                                     </div>
                                 </div>
 
@@ -161,7 +160,7 @@ export default function ContactUsPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1">Address</h3>
-                                        <p className="text-xs sm:text-sm text-gray-600">Dubai Marina</p>
+                                        <p className="text-xs sm:text-sm text-gray-600">Hor Al Anz Building 101,</p>
                                         <p className="text-xs sm:text-sm text-gray-600">Dubai, UAE</p>
                                     </div>
                                 </div>
@@ -171,12 +170,14 @@ export default function ContactUsPage() {
                         {/* Map */}
                         <div className="bg-gray-200 rounded-2xl sm:rounded-3xl overflow-hidden h-56 sm:h-64">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3613.176734276103!2d55.139160315020996!3d25.07725998395127!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f6ca7b5d3c3af%3A0x5e1a8c3f4c8a9d23!2sDubai%20Marina!5e0!3m2!1sen!2sae!4v1234567890123!5m2!1sen!2sae"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3607.550738524595!2d55.33634431502644!3d25.27235938385582!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e5f5d1e1e1e1e1f%3A0x1e1e1e1e1e1e1e1e!2sHor%20Al%20Anz%2C%20Dubai%2C%20UAE!5e0!3m2!1sen!2sae!4v1234567890123!5m2!1sen!2sae"
                                 width="100%"
                                 height="100%"
                                 style={{ border: 0 }}
+                                allowFullScreen
                                 loading="lazy"
-                                title="Location"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                title="Hor Al Anz Building 101, Dubai, UAE"
                             />
                         </div>
                     </div>
