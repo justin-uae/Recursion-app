@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
-export default function ContactUsPage() {
+function ContactForm() {
     const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [responseMessage, setResponseMessage] = useState('');
     const [formData, setFormData] = useState({
@@ -10,8 +10,8 @@ export default function ContactUsPage() {
         email: '',
         message: ''
     });
-    
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData({
@@ -22,13 +22,10 @@ export default function ContactUsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        // Get reCAPTCHA token
-        const recaptchaToken = recaptchaRef.current?.getValue();
-        
-        if (!recaptchaToken) {
+
+        if (!executeRecaptcha) {
             setFormStatus('error');
-            setResponseMessage('Please complete the reCAPTCHA verification');
+            setResponseMessage('reCAPTCHA not loaded. Please refresh the page.');
             return;
         }
 
@@ -36,6 +33,12 @@ export default function ContactUsPage() {
         setResponseMessage('');
 
         try {
+            // Execute reCAPTCHA v3 (invisible)
+            const recaptchaToken = await executeRecaptcha('contact_form');
+
+            console.log('reCAPTCHA token generated');
+
+            // Send form data with reCAPTCHA token
             const response = await fetch('https://www.excursionsdubai.ae/contact-handler.php', {
                 method: 'POST',
                 headers: {
@@ -53,10 +56,7 @@ export default function ContactUsPage() {
                 setFormStatus('success');
                 setResponseMessage(data.message || 'Your message has been sent successfully!');
                 setFormData({ name: '', email: '', message: '' });
-                
-                // Reset reCAPTCHA
-                recaptchaRef.current?.reset();
-                
+
                 setTimeout(() => {
                     setFormStatus('idle');
                     setResponseMessage('');
@@ -64,14 +64,11 @@ export default function ContactUsPage() {
             } else {
                 setFormStatus('error');
                 setResponseMessage(data.message || 'Something went wrong. Please try again.');
-                // Reset reCAPTCHA on error
-                recaptchaRef.current?.reset();
             }
         } catch (error) {
             console.error('Form submission error:', error);
             setFormStatus('error');
             setResponseMessage('Network error. Please check your connection and try again.');
-            recaptchaRef.current?.reset();
         }
     };
 
@@ -139,15 +136,6 @@ export default function ContactUsPage() {
                                 />
                             </div>
 
-                            {/* reCAPTCHA v2 Widget */}
-                            <div className="flex justify-center sm:justify-start">
-                                <ReCAPTCHA
-                                    ref={recaptchaRef}
-                                    sitekey={import.meta.env.VITE_RECAPTCHA_V2_SITE_KEY}
-                                    theme="light"
-                                />
-                            </div>
-
                             <button
                                 type="submit"
                                 disabled={formStatus === 'loading'}
@@ -165,6 +153,19 @@ export default function ContactUsPage() {
                                     </>
                                 )}
                             </button>
+
+                            {/* reCAPTCHA v3 Badge Notice */}
+                            <p className="text-xs text-gray-500 text-center">
+                                This site is protected by reCAPTCHA and the Google{' '}
+                                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    Privacy Policy
+                                </a>{' '}
+                                and{' '}
+                                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    Terms of Service
+                                </a>{' '}
+                                apply.
+                            </p>
                         </form>
 
                         {/* Status Messages */}
@@ -244,5 +245,14 @@ export default function ContactUsPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Wrap with GoogleReCaptchaProvider
+export default function ContactUsPage() {
+    return (
+        <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+            <ContactForm />
+        </GoogleReCaptchaProvider>
     );
 }

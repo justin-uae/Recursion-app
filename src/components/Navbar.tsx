@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { logout } from '../slices/authSlice';
 import { CurrencySwitcher } from './CurrencySwitcher';
 import { clearOrders } from '../slices/ordersSlice';
-import Logo from '../assets/Logo3.png'
+import DubaiSkylineIcon from './DubaiSkylineIcon';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,22 +89,15 @@ export default function Navbar() {
                 }`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        {/* Logo */}
-                        <Link to="/" className="flex items-center gap-3 group">
-                            <div className="relative">
-                                <div className="w-12 h-12 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform">
-                                    <img src={Logo}
-                                        alt="Excursions Dubai"
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
-                                {/* <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full"></div> */}
+                        <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+                            <div className="flex-shrink-0">
+                                <DubaiSkylineIcon className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 transform group-hover:scale-105 transition-transform" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                <span className="text-base sm:text-lg md:text-xl font-bold text-blue-600 leading-tight">
                                     Excursions Dubai
                                 </span>
-                                <span className="text-xs text-gray-500">Explore the Emirates</span>
+                                <span className="text-[10px] sm:text-xs text-gray-500">Explore the Emirates</span>
                             </div>
                         </Link>
 
