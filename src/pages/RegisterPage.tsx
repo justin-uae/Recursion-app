@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, Loader } from 'lucide-react';
 import { customerRegister } from '../services/shopifyService';
-import Logo from '../assets/Logo6.png';
+import Logo from '../assets/Logo.png';
 
 export default function RegisterPage() {
     const [firstName, setFirstName] = useState('');

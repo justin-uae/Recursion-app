@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { clearError, loginUser } from '../slices/authSlice';
-import Logo from '../assets/Logo6.png';
+import Logo from '../assets/Logo.png';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
