@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { logout } from '../slices/authSlice';
 import { CurrencySwitcher } from './CurrencySwitcher';
 import { clearOrders } from '../slices/ordersSlice';
-import DubaiSkylineIcon from './DubaiSkylineIcon';
+import Logo from '../assets/Logo6.png';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,7 +91,9 @@ export default function Navbar() {
                     <div className="flex items-center justify-between h-20">
                         <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
                             <div className="flex-shrink-0">
-                                <DubaiSkylineIcon className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 transform group-hover:scale-105 transition-transform" />
+                                <img className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 transform group-hover:scale-105 transition-transform"
+                                    src={Logo}
+                                />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-base sm:text-lg md:text-xl font-bold text-blue-600 leading-tight">

@@ -1,6 +1,6 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DubaiSkylineIcon from './DubaiSkylineIcon';
+import Logo from '../assets/Logo6.png';
 
 export default function Footer() {
   const quickLinks = [
@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="flex flex-col items-center md:items-start gap-3 w-full md:w-auto">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <DubaiSkylineIcon className="w-14 h-14 sm:w-16 sm:h-16 filter brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity" />
+              <img className="w-14 h-14 sm:w-16 sm:h-16" src={Logo} />
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-bold text-blue-400">
                   Excursions Dubai
