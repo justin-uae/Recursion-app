@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users, Calendar, Check, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
@@ -8,6 +8,7 @@ import { LazyImage } from './LazyImage';
 import { BookingSkeleton, DetailsSkeleton, ImageGallerySkeleton } from './Skeletons/ItemDetailPage';
 import { FaWhatsapp } from 'react-icons/fa';
 import { useCurrency } from '../hooks/useCurrency';
+import ExcursionDetailPageCommonSection from './ExcursionDetailPageCommonSection';
 
 export default function ItemDetailpage() {
     const { id } = useParams<{ id: string }>();
@@ -371,23 +372,7 @@ export default function ItemDetailpage() {
                                 dangerouslySetInnerHTML={{ __html: excursion.descriptionHtml }}
                             />
                         </div>
-
-                        {/* What's Included */}
-                        {excursion.whatsIncluded?.length > 0 && (
-                            <div>
-                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">What's Included</h2>
-                                <div className="space-y-2.5 sm:space-y-3">
-                                    {excursion.whatsIncluded.map((item: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-2.5 sm:gap-3">
-                                            <div className="bg-blue-100 rounded-full p-1 mt-0.5 flex-shrink-0">
-                                                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-                                            </div>
-                                            <span className="text-sm sm:text-base text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        <ExcursionDetailPageCommonSection />
                     </div>
 
                     {/* Right Column - Booking */}

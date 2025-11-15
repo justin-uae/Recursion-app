@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { clearError, loginUser } from '../slices/authSlice';
+import DubaiSkylineIcon from '../components/DubaiSkylineIcon';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -52,8 +53,10 @@ export default function LoginPage() {
             <div className="max-w-md w-full">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
-                        <span className="text-white text-2xl font-bold">E</span>
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4">
+                        <span className="text-white text-2xl font-bold">
+                            <DubaiSkylineIcon className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 transform group-hover:scale-105 transition-transform" />
+                        </span>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
                     <p className="text-gray-600">Sign in to continue your adventure</p>

@@ -1,5 +1,6 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DubaiSkylineIcon from './DubaiSkylineIcon';
 
 export default function Footer() {
   const quickLinks = [
@@ -12,18 +13,24 @@ export default function Footer() {
     <footer className="bg-gray-900 text-gray-300 py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Company Info */}
+          {/* Company Info with Logo */}
           <div className="flex flex-col items-center md:items-start gap-3 w-full md:w-auto">
-            <div className="flex items-baseline">
-              <span className="text-2xl font-bold text-blue-400">excursions</span>
-              <span className="text-2xl font-bold text-pink-400 ml-2">dubai</span>
-            </div>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <DubaiSkylineIcon className="w-14 h-14 sm:w-16 sm:h-16 filter brightness-0 invert opacity-90 group-hover:opacity-100 transition-opacity" />
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl font-bold text-blue-400">
+                  Excursions Dubai
+                </span>
+                <span className="text-xs text-gray-400">Explore the Emirates</span>
+              </div>
+            </Link>
 
             {/* Contact Info - Responsive Stack */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6 mt-2">
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <span className="text-sm text-center sm:text-left">Hor Al Anz Building 101 , Dubai, UAE</span>
+                <span className="text-sm text-center sm:text-left">Hor Al Anz Building 101, Dubai, UAE</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-blue-400 flex-shrink-0" />
