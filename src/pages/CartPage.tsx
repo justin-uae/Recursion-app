@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowRight, Calendar, Users, Loader, Trash2, Plus, Minus } from 'lucide-react';
+import { ArrowRight, Calendar, Users, Loader, Trash2, Plus, Minus, User, UserX } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { createOrder } from '../slices/checkoutSlice';
@@ -7,6 +7,7 @@ import { clearCart, removeFromCart, updateQuantity } from '../slices/cartSlice';
 import { useCurrency } from '../hooks/useCurrency';
 
 type CheckoutStep = 'cart' | 'checkout';
+type CheckoutType = 'guest' | 'account';
 
 export const CartPageComplete: React.FC = () => {
     const navigate = useNavigate();
@@ -15,10 +16,10 @@ export const CartPageComplete: React.FC = () => {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const { items } = useAppSelector((state) => state.cart);
     const { loading: checkoutLoading, success: checkoutSuccess } = useAppSelector((state) => state.checkout);
-    // Currency hook
     const { formatPrice, convertPrice, selectedCurrency } = useCurrency();
 
     const [currentStep, setCurrentStep] = useState<CheckoutStep>('cart');
+    const [checkoutType, setCheckoutType] = useState<CheckoutType>('guest');
     const [submitted, setSubmitted] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -27,12 +28,32 @@ export const CartPageComplete: React.FC = () => {
         phone: '+971',
     });
 
-    // Pre-fill email when user data is available
+    // Set default checkout type based on authentication
     useEffect(() => {
-        if (user?.email) {
-            setFormData(prev => ({ ...prev, email: user.email }));
+        if (isAuthenticated && user) {
+            setCheckoutType('account');
         }
-    }, [user?.email]);
+    }, [isAuthenticated, user]);
+
+    // Pre-fill data ONLY when checkout type is 'account' AND user is authenticated
+    useEffect(() => {
+        if (checkoutType === 'account' && isAuthenticated && user) {
+            setFormData(prev => ({
+                ...prev,
+                email: user.email || '',
+                name: user.firstName && user.lastName
+                    ? `${user.firstName} ${user.lastName}`
+                    : prev.name,
+            }));
+        } else if (checkoutType === 'guest') {
+            // Clear form data when switching to guest mode
+            setFormData({
+                name: '',
+                email: '',
+                phone: '+971',
+            });
+        }
+    }, [checkoutType, isAuthenticated, user]);
 
     // Calculate totals with currency conversion
     const totalPrice = useMemo(() => {
@@ -45,7 +66,7 @@ export const CartPageComplete: React.FC = () => {
     const tax = useMemo(() => totalPrice * 0.05, [totalPrice]);
     const finalTotal = useMemo(() => totalPrice + tax, [totalPrice, tax]);
 
-    // Calculate AED totals for order submission (always send AED to Shopify)
+    // Calculate AED totals for order submission
     const totalPriceAED = useMemo(() => {
         return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }, [items]);
@@ -64,27 +85,29 @@ export const CartPageComplete: React.FC = () => {
     };
 
     const handleCheckoutClick = () => {
-        if (!isAuthenticated) {
-            navigate('/login');
-            return;
-        }
         setCurrentStep('checkout');
     };
 
     const handleBackToCart = () => {
         setCurrentStep('cart');
+        setErrorMessage(null);
+    };
+
+    const handleCheckoutTypeChange = (type: CheckoutType) => {
+        if (type === 'account' && !isAuthenticated) {
+            navigate('/login', { state: { from: { pathname: '/cart' } } });
+            return;
+        }
+        setCheckoutType(type);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         if (name === 'phone') {
-            // Ensure +971 prefix is always there
             if (!value.startsWith('+971')) {
                 setFormData(prev => ({ ...prev, [name]: '+971' }));
                 return;
             }
-
-            // Only allow numbers after +971, max 13 characters (+971 + 9 digits)
             const phoneRegex = /^\+971[0-9]{0,9}$/;
             if (phoneRegex.test(value) || value === '+971') {
                 setFormData(prev => ({ ...prev, [name]: value }));
@@ -103,11 +126,21 @@ export const CartPageComplete: React.FC = () => {
             return;
         }
 
-        // Prepare line items for order - ALWAYS send AED prices to Shopify
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setErrorMessage('Please enter a valid email address');
+            return;
+        }
+
+        if (formData.phone.length !== 13) {
+            setErrorMessage('Please enter a valid UAE phone number (9 digits after +971)');
+            return;
+        }
+
         const lineItems = items.map((item) => ({
             variantId: item.variantId,
             quantity: item.quantity,
-            price: item.price, // Keep original AED price
+            price: item.price,
             title: item.title,
             customAttributes: item.customAttributes
                 ? [
@@ -116,37 +149,32 @@ export const CartPageComplete: React.FC = () => {
                     { key: 'Children', value: item.customAttributes.children || '0' },
                     { key: 'Total Guests', value: item.customAttributes.totalGuests || '0' },
                     { key: 'Display Currency', value: selectedCurrency.code },
+                    { key: 'Checkout Type', value: checkoutType === 'guest' ? 'Guest Checkout' : 'Account Checkout' },
                 ]
                 : [
-                    { key: 'Display Currency', value: selectedCurrency.code }
+                    { key: 'Display Currency', value: selectedCurrency.code },
+                    { key: 'Checkout Type', value: checkoutType === 'guest' ? 'Guest Checkout' : 'Account Checkout' },
                 ],
         }));
 
-        // Create order through Redux
         const result: any = await dispatch(
             createOrder({
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone,
                 lineItems,
-                note: `Online Booking - Customer viewed prices in ${selectedCurrency.code}`,
-                tags: ['Online Booking', `Currency: ${selectedCurrency.code}`],
+                note: `${checkoutType === 'guest' ? 'Guest' : 'Account'} Booking - Customer viewed prices in ${selectedCurrency.code}`,
+                tags: ['Online Booking', `Currency: ${selectedCurrency.code}`, checkoutType === 'guest' ? 'Guest Checkout' : 'Account Checkout'],
             })
         );
 
         if (result.meta.requestStatus === 'fulfilled') {
-            // Clear cart after successful order
             dispatch(clearCart());
             setSubmitted(true);
-
-            // Store order data in sessionStorage for success page
             sessionStorage.setItem('tempOrderData', JSON.stringify(result.payload));
 
-            // Redirect to Shopify checkout after a short delay
             setTimeout(() => {
                 if (result.payload?.checkoutUrl) {
-                    console.log('🔄 Redirecting to Shopify checkout:', result.payload.checkoutUrl);
-                    // Redirect to Shopify's checkout page
                     window.location.href = result.payload.checkoutUrl;
                 } else {
                     setErrorMessage('Checkout URL not received. Please try again.');
@@ -159,47 +187,17 @@ export const CartPageComplete: React.FC = () => {
         }
     };
 
+    // Success/Loading State
     if (submitted && checkoutSuccess) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white flex items-center justify-center p-6">
                 <div className="text-center max-w-md">
-                    {/* Animated Loading Icon */}
                     <div className="mb-8 inline-block">
                         <Loader className="w-20 h-20 text-blue-600 animate-spin" />
                     </div>
-
-                    {/* Heading */}
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">Booking Details Preparing</h1>
+                    <p className="text-lg text-gray-600 mb-8">Preparing your secure checkout...</p>
 
-                    {/* Subheading */}
-                    <p className="text-lg text-gray-600 mb-8">
-                        Preparing your secure checkout...
-                    </p>
-
-                    {/* Info Cards */}
-                    {/* <div className="space-y-3 mb-8">
-                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
-                            <p className="text-gray-500 text-xs mb-1">Booking For</p>
-                            <p className="text-gray-800 font-semibold text-sm">{formData.name}</p>
-                        </div>
-
-                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
-                            <p className="text-gray-500 text-xs mb-1">Total to Pay</p>
-                            <p className="text-2xl font-bold text-blue-600">{formatPrice(finalTotal)}</p>
-                            {selectedCurrency.code !== 'AED' && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                    (AED {finalTotalAED.toFixed(2)} at checkout)
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
-                            <p className="text-gray-500 text-xs mb-1">Items</p>
-                            <p className="text-gray-800 font-semibold text-sm">{items.length} booking{items.length !== 1 ? 's' : ''}</p>
-                        </div>
-                    </div> */}
-
-                    {/* Status Message */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
                         <div className="flex items-start gap-3">
                             <div className="text-2xl">🔒</div>
@@ -212,7 +210,6 @@ export const CartPageComplete: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Loading Indicator */}
                     <div className="mb-8">
                         <p className="text-gray-600 font-semibold mb-3">Redirecting to Payment</p>
                         <div className="flex gap-2 justify-center">
@@ -222,13 +219,10 @@ export const CartPageComplete: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Info Message */}
                     <div className="space-y-2">
-                        <p className="text-sm font-medium text-gray-800">
-                            Next Step: Complete Payment
-                        </p>
+                        <p className="text-sm font-medium text-gray-800">Next Step: Complete Payment</p>
                         <p className="text-xs text-gray-500 leading-relaxed">
-                            Please do not close this page. You will be redirected to our secure payment gateway shortly to complete your payment.
+                            Please do not close this page. You will be redirected to our secure payment gateway shortly.
                         </p>
                     </div>
                 </div>
@@ -246,7 +240,6 @@ export const CartPageComplete: React.FC = () => {
                     </div>
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Cart is Empty</h1>
                     <p className="text-gray-500 mb-6">Add your favorite experiences to start exploring!</p>
-
                     <Link
                         className="inline-block bg-blue-600 text-white font-semibold px-8 py-3 rounded-full hover:bg-blue-700 transition-all shadow-md"
                         to={"/excursions"}
@@ -263,14 +256,12 @@ export const CartPageComplete: React.FC = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white py-12 px-4">
                 <div className="max-w-6xl mx-auto">
-                    {/* Header */}
                     <div className="text-center mb-12">
                         <h1 className="text-4xl font-bold text-gray-800 mb-2">Your Shopping Cart</h1>
                         <p className="text-gray-600 text-lg">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                        {/* Cart Items */}
                         <div className="lg:col-span-2 space-y-4">
                             {items.map((item) => (
                                 <div
@@ -282,16 +273,11 @@ export const CartPageComplete: React.FC = () => {
                                             <img src={item?.image} alt={`Thumbnail`} className="w-full h-full object-contain" />
                                         </div>
 
-                                        {/* Item Details */}
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
-                                                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                                                        {item.title}
-                                                    </h3>
-                                                    <p className="text-blue-600 font-bold text-lg">
-                                                        {formatPrice(item.price)}
-                                                    </p>
+                                                    <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.title}</h3>
+                                                    <p className="text-blue-600 font-bold text-lg">{formatPrice(item.price)}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemoveItem(item.variantId)}
@@ -302,7 +288,6 @@ export const CartPageComplete: React.FC = () => {
                                                 </button>
                                             </div>
 
-                                            {/* Item Attributes */}
                                             {item.customAttributes && (
                                                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-3 mb-4 text-sm text-gray-600 space-y-1">
                                                     {item.customAttributes.date && (
@@ -335,7 +320,6 @@ export const CartPageComplete: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {/* Quantity Controls */}
                                             <div className="flex items-center gap-4">
                                                 <span className="text-gray-600 text-sm">Quantity:</span>
                                                 <div className="flex items-center border border-gray-300 rounded-lg">
@@ -367,7 +351,6 @@ export const CartPageComplete: React.FC = () => {
                                 </div>
                             ))}
 
-                            {/* Continue Shopping Button */}
                             <Link
                                 to="/excursions"
                                 className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold mt-6"
@@ -376,7 +359,6 @@ export const CartPageComplete: React.FC = () => {
                             </Link>
                         </div>
 
-                        {/* Order Summary Sidebar */}
                         <div className="lg:col-span-1">
                             <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 sticky top-6">
                                 <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Order Summary</h3>
@@ -409,6 +391,14 @@ export const CartPageComplete: React.FC = () => {
                                 >
                                     Proceed to Checkout <ArrowRight className="w-5 h-5" />
                                 </button>
+
+                                {/* Guest Checkout Badge */}
+                                <div className="mt-4 text-center">
+                                    <div className="inline-flex items-center gap-2 text-sm text-gray-600 bg-green-50 px-4 py-2 rounded-full border border-green-200">
+                                        <UserX className="w-4 h-4 text-green-600" />
+                                        <span>Guest checkout available</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -421,7 +411,6 @@ export const CartPageComplete: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white py-12 px-4">
             <div className="max-w-6xl mx-auto">
-                {/* Header with Back Button */}
                 <div className="text-center mb-12">
                     <button
                         onClick={handleBackToCart}
@@ -434,17 +423,76 @@ export const CartPageComplete: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    {/* Form */}
                     <div className="lg:col-span-2">
                         <form
                             onSubmit={handleCheckoutSubmit}
                             className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100"
                         >
+                            {/* Checkout Type Selection */}
+                            <div className="mb-8">
+                                <h2 className="text-xl font-bold text-gray-800 mb-4">Choose Checkout Method</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Guest Checkout Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCheckoutTypeChange('guest')}
+                                        className={`p-4 rounded-xl border-2 transition-all text-left ${checkoutType === 'guest'
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${checkoutType === 'guest' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                <UserX className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-800">Guest Checkout</h3>
+                                                <p className="text-xs text-gray-500">No account required</p>
+                                            </div>
+                                        </div>
+                                        {checkoutType === 'guest' && (
+                                            <div className="text-xs text-blue-600 font-medium">✓ Selected</div>
+                                        )}
+                                    </button>
+
+                                    {/* Account Checkout Option */}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleCheckoutTypeChange('account')}
+                                        className={`p-4 rounded-xl border-2 transition-all text-left ${checkoutType === 'account'
+                                            ? 'border-purple-500 bg-purple-50'
+                                            : 'border-gray-200 hover:border-gray-300'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${checkoutType === 'account' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-800">
+                                                    {isAuthenticated ? 'Use My Account' : 'Sign In'}
+                                                </h3>
+                                                <p className="text-xs text-gray-500">
+                                                    {isAuthenticated ? 'Faster checkout' : 'Sign in to your account'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {checkoutType === 'account' && isAuthenticated && (
+                                            <div className="text-xs text-purple-600 font-medium">✓ Logged in as {user?.email}</div>
+                                        )}
+                                        {!isAuthenticated && (
+                                            <div className="text-xs text-gray-500">Click to sign in →</div>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
                             <h2 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-3">
-                                🧾 Your Details
+                                🧾 {checkoutType === 'guest' ? 'Guest Details' : 'Your Details'}
                             </h2>
 
-                            {/* Error Message */}
                             {errorMessage && (
                                 <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
                                     <p className="text-red-700 text-sm font-semibold">❌ {errorMessage}</p>
@@ -473,14 +521,16 @@ export const CartPageComplete: React.FC = () => {
                                         value={formData.email}
                                         onChange={handleInputChange}
                                         placeholder="your@email.com"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50"
+                                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none ${checkoutType === 'account' && user?.email ? 'bg-gray-50' : ''
+                                            }`}
                                         required
-                                        readOnly={!!user?.email}
+                                        readOnly={checkoutType === 'account' && !!user?.email}
                                     />
-                                    {user?.email && (
-                                        <p className="text-gray-500 text-xs mt-1">
-                                            Using your account email
-                                        </p>
+                                    {checkoutType === 'account' && user?.email && (
+                                        <p className="text-gray-500 text-xs mt-1">Using your account email</p>
+                                    )}
+                                    {checkoutType === 'guest' && (
+                                        <p className="text-gray-500 text-xs mt-1">Confirmation will be sent to this email</p>
                                     )}
                                 </div>
 
@@ -497,11 +547,22 @@ export const CartPageComplete: React.FC = () => {
                                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         required
                                     />
-                                    <p className="text-gray-500 text-xs mt-1">
-                                        Enter 9 digits after +971
-                                    </p>
+                                    <p className="text-gray-500 text-xs mt-1">Enter 9 digits after +971</p>
                                 </div>
                             </div>
+
+                            {/* Guest Checkout Benefits */}
+                            {checkoutType === 'guest' && (
+                                <div className="mt-6 bg-green-50 rounded-2xl border border-green-200 p-4">
+                                    <h3 className="text-sm font-semibold text-green-800 mb-2">✓ Guest Checkout Benefits</h3>
+                                    <ul className="text-gray-600 text-xs space-y-1">
+                                        <li>• No account creation required</li>
+                                        <li>• Quick and easy booking</li>
+                                        <li>• Confirmation sent to your email</li>
+                                        <li>• Same secure payment process</li>
+                                    </ul>
+                                </div>
+                            )}
 
                             {/* Payment Info */}
                             <div className="mt-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border border-blue-100 p-6">
@@ -529,6 +590,18 @@ export const CartPageComplete: React.FC = () => {
                                     </>
                                 )}
                             </button>
+
+                            {/* Create Account Prompt for Guests */}
+                            {checkoutType === 'guest' && !isAuthenticated && (
+                                <div className="mt-4 text-center">
+                                    <p className="text-gray-600 text-sm">
+                                        Want to track your bookings?{' '}
+                                        <Link to="/register" className="text-blue-600 hover:text-blue-700 font-semibold">
+                                            Create an account
+                                        </Link>
+                                    </p>
+                                </div>
+                            )}
                         </form>
                     </div>
 

@@ -28,7 +28,7 @@ const FAQ_DATABASE: Record<string, string> = {
     'transport': '🚗 We provide **free hotel pickup & drop-off** in Dubai for most tours.\n\n✅ Professional drivers\n✅ Comfortable AC vehicles',
     'cancel': '📋 **Cancellation Policy**\n\n✅ Free cancellation up to **24 hours** before tour\n✅ Full refund if cancelled 24+ hours\n✅ 50% refund if cancelled 12-24 hours\n❌ No refund if cancelled less than 12 hours\n\nContact us for special circumstances!',
     'refund': '💵 We offer **full refunds** for cancellations made 24+ hours before your tour.\n\nSee our cancellation policy for details.',
-    'contact': '📞 **Contact Us**\n\n• **WhatsApp:** +971 50 123 4567\n• **Email:** info@excursionsdubai.ae\n• **Phone:** +971 54561 3397\n\n🕐 Available **24/7** to assist you!',
+    'contact': '📞 **Contact Us**\n\n• **WhatsApp:** +971 50 123 4567\n• **Email:** info@excursionsdubai.ae\n• **Phone:** +971 54561 3397\n\n🕐 Available **24/7** to assist you!\n\n[Contact us Now](/contact)',
     'whatsapp': '💬 Chat with us on **WhatsApp** at **+971 50 123 4567** for instant assistance!\n\nClick the green WhatsApp button below! 👇',
     'email': '📧 Email us at **info@excursionsdubai.ae**\n\nWe\'ll respond within 24 hours!',
     'phone': '📞 Call us at **+971 54561 3397** for immediate assistance!',
@@ -137,31 +137,55 @@ function MessageContent({ content }: { content: string }) {
     );
 }
 
-// More sophisticated keyword matching
 function findAnswer(question: string): string {
     const lowerQuestion = question.toLowerCase().trim();
 
-    // Check for exact matches or contains
+    // Priority keywords - check these first
+    const priorityMatches: Array<[string[], string]> = [
+        [['hello', 'hi', 'hey', 'hola'], 'hello'],
+        [['price', 'cost', 'how much', 'rate', 'fee', 'charge'], 'price'],
+        [['book', 'booking', 'reserve', 'reservation'], 'booking'],
+        [['burj khalifa', 'burj'], 'burj khalifa'],
+        [['desert safari', 'desert', 'safari', 'dune'], 'desert safari'],
+        [['marina', 'cruise', 'boat', 'yacht'], 'marina'],
+        [['abu dhabi', 'abudhabi', 'mosque'], 'abu dhabi'],
+        [['pickup', 'pick up', 'transport', 'hotel pickup'], 'pickup'],
+        [['cancel', 'cancellation', 'refund'], 'cancel'],
+        [['contact', 'phone', 'call', 'reach'], 'contact'],
+        [['whatsapp', 'chat', 'message'], 'whatsapp'],
+        [['email', 'mail'], 'email'],
+        [['group', 'discount', 'offer', 'deal'], 'group'],
+        [['duration', 'how long', 'time', 'hours'], 'duration'],
+        [['include', 'included', 'what\'s included'], 'what included'],
+        [['children', 'kids', 'child', 'family'], 'children'],
+        [['payment', 'pay', 'card', 'visa'], 'payment'],
+        [['weather', 'temperature', 'hot', 'climate'], 'weather'],
+        [['best time', 'when to visit', 'season'], 'best time'],
+        [['thank', 'thanks', 'appreciate'], 'thank'],
+        [['tour', 'excursion', 'trip', 'show'], 'price'], // Default to show tours
+    ];
+
+    // Check priority matches
+    for (const [keywords, faqKey] of priorityMatches) {
+        for (const keyword of keywords) {
+            if (lowerQuestion.includes(keyword)) {
+                console.log('Matched keyword:', keyword, '-> FAQ key:', faqKey);
+                if (FAQ_DATABASE[faqKey]) {
+                    return FAQ_DATABASE[faqKey];
+                }
+            }
+        }
+    }
+
+    // Fallback: Check direct FAQ_DATABASE keys
     for (const [keyword, answer] of Object.entries(FAQ_DATABASE)) {
         if (lowerQuestion.includes(keyword)) {
+            console.log('Direct match:', keyword);
             return answer;
         }
     }
 
-    // Check for common question patterns
-    if (lowerQuestion.includes('how much') || lowerQuestion.includes('how many')) {
-        return FAQ_DATABASE['price'];
-    }
-
-    if (lowerQuestion.includes('how to book') || lowerQuestion.includes('make reservation')) {
-        return FAQ_DATABASE['booking'];
-    }
-
-    if (lowerQuestion.includes('reach you') || lowerQuestion.includes('talk to')) {
-        return FAQ_DATABASE['contact'];
-    }
-
-    // Default response with suggestions
+    // Default response
     return `I'm not sure about that specific question. 🤔
 
 Here's what I can help you with:
