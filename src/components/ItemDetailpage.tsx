@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users, Calendar, Star, ChevronLeft, ChevronRight, CheckCircle, Check } from 'lucide-react';
+import { MapPin, Clock, Users, Calendar, Star, ChevronLeft, ChevronRight, CheckCircle, Check, FileText } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchExcursionById } from '../slices/productsSlice';
 import { addToCartAsync } from '../slices/cartSlice';
@@ -68,6 +68,10 @@ export default function ItemDetailpage() {
             ? excursion.inclusions.filter(item => item && item.trim().length > 0)
             : defaultInclusions;
     }, [excursion?.inclusions]);
+
+    const safetyPdfUrl = excursion?.title?.toLowerCase().includes('skydive')
+        ? 'https://d1i3enf1i5tb1f.cloudfront.net/assets/pdf/SkydiveImportantInfo.pdf'
+        : null;
 
     const totalGuests = adults + children;
 
@@ -390,27 +394,51 @@ export default function ItemDetailpage() {
                         </div>
                         {/* Inclusions */}
                         {
-                            <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md border border-gray-100">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                                     </div>
-                                    What's Included
+                                    <span className="leading-tight">What's Included</span>
                                 </h2>
 
-                                <div className="space-y-3">
+                                <div className="space-y-2 sm:space-y-3">
                                     {displayInclusions?.map((inclusion: string, index: number) => (
                                         <div
                                             key={index}
-                                            className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100"
+                                            className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-green-50 rounded-lg border border-green-100"
                                         >
-                                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <Check className="w-4 h-4 text-white" />
+                                            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                                             </div>
-                                            <span className="text-gray-700 font-medium text-sm sm:text-base">{inclusion}</span>
+                                            <span className="text-gray-700 font-medium text-xs sm:text-sm md:text-base leading-snug">{inclusion}</span>
                                         </div>
                                     ))}
                                 </div>
+
+                                {safetyPdfUrl && (
+                                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+                                        <div className="flex flex-col sm:flex-row items-start gap-3">
+                                            <div className="flex-1 min-w-0 w-full">
+                                                <h3 className="font-bold text-red-800 mb-1.5 sm:mb-2 text-sm sm:text-base">
+                                                    Important Safety Information
+                                                </h3>
+                                                <p className="text-xs sm:text-sm text-red-700 mb-3 leading-relaxed">
+                                                    Please read the safety guidelines before your skydive experience.
+                                                </p>
+                                                <a
+                                                    href={safetyPdfUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-colors text-xs sm:text-sm w-full sm:w-auto"
+                                                >
+                                                    <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                    <span>View Safety Guide (PDF)</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         }
                         <ExcursionDetailPageCommonSection />
