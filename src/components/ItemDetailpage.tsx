@@ -60,8 +60,12 @@ export default function ItemDetailpage() {
             "Bottled water"
         ];
 
-        return excursion?.inclusions && excursion.inclusions.length > 0
-            ? excursion.inclusions
+        const hasValidInclusions = excursion?.inclusions &&
+            excursion.inclusions.length > 0 &&
+            excursion.inclusions.some(item => item && item.trim().length > 0);
+
+        return hasValidInclusions
+            ? excursion.inclusions.filter(item => item && item.trim().length > 0)
             : defaultInclusions;
     }, [excursion?.inclusions]);
 
@@ -385,7 +389,7 @@ export default function ItemDetailpage() {
                             />
                         </div>
                         {/* Inclusions */}
-                        {displayInclusions && (
+                        {
                             <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
                                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -408,7 +412,7 @@ export default function ItemDetailpage() {
                                     ))}
                                 </div>
                             </div>
-                        )}
+                        }
                         <ExcursionDetailPageCommonSection />
                     </div>
 
