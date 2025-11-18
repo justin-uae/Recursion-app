@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Users, Calendar, Star, ChevronLeft, ChevronRight, CheckCircle, Check } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
@@ -52,6 +52,18 @@ export default function ItemDetailpage() {
             setCurrentImageIndex((prev) => (prev - 1 + excursion.images.length) % excursion.images.length);
         }
     };
+
+    const displayInclusions = useMemo(() => {
+        const defaultInclusions = [
+            "Refreshment drink",
+            "Tea & Coffee",
+            "Bottled water"
+        ];
+
+        return excursion?.inclusions && excursion.inclusions.length > 0
+            ? excursion.inclusions
+            : defaultInclusions;
+    }, [excursion?.inclusions]);
 
     const totalGuests = adults + children;
 
@@ -373,7 +385,7 @@ export default function ItemDetailpage() {
                             />
                         </div>
                         {/* Inclusions */}
-                        {excursion?.inclusions && excursion.inclusions.length > 0 && (
+                        {displayInclusions && (
                             <div className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
                                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -383,7 +395,7 @@ export default function ItemDetailpage() {
                                 </h2>
 
                                 <div className="space-y-3">
-                                    {excursion.inclusions.map((inclusion: string, index: number) => (
+                                    {displayInclusions?.map((inclusion: string, index: number) => (
                                         <div
                                             key={index}
                                             className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100"
