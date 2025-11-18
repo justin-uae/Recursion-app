@@ -24,6 +24,7 @@ interface ProductDetail extends Product {
   variants: Variant[];
   highlights: string[];
   whatsIncluded: string[];
+  inclusions: string[];
 }
 
 interface Variant {
@@ -382,6 +383,7 @@ export const getExcursionById = async (productId: string): Promise<ProductDetail
           {namespace: "custom", key: "reviews_count"},
           {namespace: "custom", key: "group_size"},
           {namespace: "custom", key: "highlights"},
+          {namespace: "custom", key: "inclusions"},
           {namespace: "custom", key: "whats_included"}
         ]) {
           key
@@ -393,6 +395,20 @@ export const getExcursionById = async (productId: string): Promise<ProductDetail
 
   const { data } = await client.request(query, { variables: { id: productId } });
   const product = data.product;
+
+  const inclusionsRaw = product.metafields?.find((m: Metafield) => m?.key === 'inclusions')?.value;
+  let inclusions: string[] = [];
+
+  if (inclusionsRaw) {
+    try {
+      inclusions = JSON.parse(inclusionsRaw);
+    } catch (e) {
+      // If parsing fails, try to split by comma or use as single item
+      inclusions = inclusionsRaw.includes(',')
+        ? inclusionsRaw.split(',').map((s: string) => s.trim())
+        : [inclusionsRaw];
+    }
+  }
 
   return {
     id: product.id,
@@ -417,6 +433,7 @@ export const getExcursionById = async (productId: string): Promise<ProductDetail
     groupSize: product.metafields?.find((m: Metafield) => m?.key === 'group_size')?.value || '',
     highlights: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'highlights')?.value || '[]'),
     whatsIncluded: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'whats_included')?.value || '[]'),
+    inclusions: inclusions,
   };
 };
 

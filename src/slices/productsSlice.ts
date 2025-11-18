@@ -26,6 +26,7 @@ interface ProductDetail extends Product {
     descriptionHtml: string;
     variants: Variant[];
     highlights: string[];
+    inclusions: string[];
     whatsIncluded: string[];
 }
 
