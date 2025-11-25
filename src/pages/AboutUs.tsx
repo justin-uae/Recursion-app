@@ -114,10 +114,6 @@ export default function AboutPage() {
                         <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
                             <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <div>
-                            <h3 className="font-bold text-sm sm:text-base text-gray-900 mb-1">Flexible Plans</h3>
-                            <p className="text-xs sm:text-sm text-gray-700">Free cancellation up to 24 hours before your tour</p>
-                        </div>
                     </div>
                 </div>
             </div>
