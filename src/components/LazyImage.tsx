@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
 export const LazyImage = ({ src, alt, className }: { src: string; alt: string; className: string }) => {
     const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +20,7 @@ export const LazyImage = ({ src, alt, className }: { src: string; alt: string; c
                 <div className={`${className} bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse`} />
             )}
             {imageSrc && (
-                <img
+                <LazyLoadImage
                     src={imageSrc}
                     alt={alt}
                     className={`${className} ${isLoading ? 'hidden' : 'block'}`}

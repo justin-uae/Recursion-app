@@ -1,6 +1,7 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/Logo.png';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 export default function Footer() {
   const quickLinks = [
@@ -17,7 +18,7 @@ export default function Footer() {
           <div className="flex flex-col items-center md:items-start gap-3 w-full md:w-auto">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <img className="w-14 h-14 sm:w-16 sm:h-16" src={Logo} />
+              <LazyLoadImage loading='lazy' className="w-14 h-14 sm:w-16 sm:h-16" src={Logo} />
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl font-bold text-blue-400">
                   Excursions Dubai

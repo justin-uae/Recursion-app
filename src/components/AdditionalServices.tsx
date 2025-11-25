@@ -1,3 +1,5 @@
+import { LazyLoadImage } from "react-lazy-load-image-component";
+
 const AdditionalServices = () => {
 
     const InfoCard = ({ title, main, sub }: any) => (
@@ -86,11 +88,11 @@ const AdditionalServices = () => {
                         Positive Reviews
                     </p>
                     <div className="flex flex-wrap justify-center items-center gap-6">
-                        <img src="https://www.excursionsdubai.com/common/cms_image/554/0/0/1" alt="WorldPay" className="h-13" />
-                        <img src="https://www.excursionsdubai.com/common/cms_image/555/0/0/1" alt="Dubai" className="h-13" />
-                        <img src="https://www.excursionsdubai.com/common/cms_image/604/0/0/1" alt="SSL" className="h-13" />
-                        <img src="https://www.excursionsdubai.com/common/cms_image/557/0/0/1" alt="Tripadvisor" className="h-13" />
-                        <img src="https://www.excursionsdubai.com/common/cms_image/567/0/0/1" alt="Trustpilot" className="h-13" />
+                        <LazyLoadImage src="https://www.excursionsdubai.com/common/cms_image/554/0/0/1" alt="WorldPay" className="h-13" />
+                        <LazyLoadImage src="https://www.excursionsdubai.com/common/cms_image/555/0/0/1" alt="Dubai" className="h-13" />
+                        <LazyLoadImage src="https://www.excursionsdubai.com/common/cms_image/604/0/0/1" alt="SSL" className="h-13" />
+                        <LazyLoadImage src="https://www.excursionsdubai.com/common/cms_image/557/0/0/1" alt="Tripadvisor" className="h-13" />
+                        <LazyLoadImage src="https://www.excursionsdubai.com/common/cms_image/567/0/0/1" alt="Trustpilot" className="h-13" />
                     </div>
                 </section>
 

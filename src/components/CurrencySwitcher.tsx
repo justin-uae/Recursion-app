@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { setCurrency } from '../slices/currencySlice';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 export function CurrencySwitcher() {
     const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +56,8 @@ export function CurrencySwitcher() {
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 w-full lg:w-auto"
                 aria-label="Select currency"
             >
-                <img
+                <LazyLoadImage
+                    loading='lazy'
                     src={getFlagUrl(selectedCurrency.code)}
                     alt={`${selectedCurrency.name} flag`}
                     className="w-6 h-4 object-cover rounded shadow-sm"
@@ -74,12 +76,12 @@ export function CurrencySwitcher() {
                             <button
                                 key={currency.code}
                                 onClick={() => handleCurrencyChange(currency.code)}
-                                className={`w-full flex items-center justify-between px-4 py-3 hover:bg-blue-50 transition-colors ${
-                                    selectedCurrency.code === currency.code ? 'bg-blue-50' : ''
-                                }`}
+                                className={`w-full flex items-center justify-between px-4 py-3 hover:bg-blue-50 transition-colors ${selectedCurrency.code === currency.code ? 'bg-blue-50' : ''
+                                    }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <img
+                                    <LazyLoadImage
+                                        loading='lazy'
                                         src={getFlagUrl(currency.code)}
                                         alt={`${currency.name} flag`}
                                         className="w-8 h-6 object-cover rounded shadow-sm"

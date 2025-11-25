@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { fetchCollectionsWithProducts } from '../slices/productsSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { getMediaUrls } from '../services/shopifyService';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 export default function HomepageBanner() {
     const [selectedLocation, setSelectedLocation] = useState('');
@@ -170,7 +171,8 @@ export default function HomepageBanner() {
                         </div>
                     ) : (
                         <>
-                            <img
+                            <LazyLoadImage
+                                loading='lazy'
                                 src={`${currentBannerImage}?width=1920&height=1080`}
                                 alt="Banner"
                                 className="w-full h-full object-cover transition-opacity duration-500"
@@ -218,8 +220,8 @@ export default function HomepageBanner() {
                                         }
                                     }}
                                     className={`w-2 h-2 rounded-full transition-all ${index === currentBannerIndex
-                                            ? 'bg-white w-8'
-                                            : 'bg-white/50 hover:bg-white/75'
+                                        ? 'bg-white w-8'
+                                        : 'bg-white/50 hover:bg-white/75'
                                         }`}
                                     aria-label={`Go to banner ${index + 1}`}
                                 />
@@ -283,7 +285,8 @@ export default function HomepageBanner() {
                                                 className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
                                                 <div className="w-full h-24 rounded-lg overflow-hidden">
-                                                    <img
+                                                    <LazyLoadImage
+                                                        loading='lazy'
                                                         src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                                         alt={city.location}
                                                         className="w-full h-full object-cover"
@@ -337,7 +340,8 @@ export default function HomepageBanner() {
                                     onClick={() => handleCityClick(city?.location)}
                                     className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64 hover:shadow-2xl transition-shadow"
                                 >
-                                    <img
+                                    <LazyLoadImage
+                                        loading='lazy'
                                         src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
                                         alt={city.title}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"

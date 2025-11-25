@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useRedux';
 import { createOrder } from '../slices/checkoutSlice';
 import { clearCart, removeFromCart, updateQuantity } from '../slices/cartSlice';
 import { useCurrency } from '../hooks/useCurrency';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 type CheckoutStep = 'cart' | 'checkout';
 type CheckoutType = 'guest' | 'account';
@@ -270,7 +271,7 @@ export const CartPageComplete: React.FC = () => {
                                 >
                                     <div className="flex flex-col justify-center items-center sm:flex-row gap-6">
                                         <div className="w-full sm:w-32 h-32 flex items-center rounded-lg">
-                                            <img src={item?.image} alt={`Thumbnail`} className="w-full h-full object-contain" />
+                                            <LazyLoadImage loading='lazy' src={item?.image} alt={`Thumbnail`} className="w-full h-full object-contain" />
                                         </div>
 
                                         <div className="flex-1">
