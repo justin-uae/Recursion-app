@@ -33,14 +33,21 @@ export default function ItemDetailpage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [addingToCart, setAddingToCart] = useState(false);
 
-    // Fetch excursion details
+    // Clear and fetch on ID change
     useEffect(() => {
+        // Reset all state immediately
+        setSelectedDate(getTodayDate());
+        setAdults(2);
+        setChildren(0);
+        setCurrentImageIndex(0);
+        setAddingToCart(false);
+
+        // Fetch new excursion
         if (id) {
             const gidId = id.startsWith('gid://') ? id : `gid://shopify/Product/${id}`;
             dispatch(fetchExcursionById(gidId));
         }
     }, [id, dispatch]);
-
     const nextImage = () => {
         if (excursion) {
             setCurrentImageIndex((prev) => (prev + 1) % excursion.images.length);
@@ -210,7 +217,7 @@ export default function ItemDetailpage() {
     }
 
     return (
-        <div className="min-h-screen bg-white">
+        <div key={id} className="min-h-screen bg-white">
             {/* Custom Styles for Date Picker */}
             <style>{`
                 input[type="date"] {

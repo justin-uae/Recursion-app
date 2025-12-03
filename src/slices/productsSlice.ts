@@ -37,6 +37,7 @@ interface Collection {
     image: string;
     handle: string;
     bannerImages?: string[];
+    citiesData?: string[];
     bannerMediaIds?: string[];
 }
 

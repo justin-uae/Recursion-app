@@ -130,12 +130,12 @@ export default function HomepageBanner() {
         (col: any) => col.handle === 'best-cities-to-visit'
     );
 
-    const bestCitiesToVisit = bestCitiesCollection?.products || [];
+    const bestCitiesToVisit = bestCitiesCollection?.citiesData  || [];
 
     // Get unique locations for dropdown
     const uniqueLocations = [
         ...new Map(
-            bestCitiesToVisit?.map((city: any) => [city?.location, city])
+            bestCitiesToVisit?.map((city: any) => [city?.name, city])
         ).values(),
     ];
 
@@ -279,7 +279,7 @@ export default function HomepageBanner() {
                                             <button
                                                 key={index}
                                                 onClick={() => {
-                                                    handleCityClick(city?.location);
+                                                    handleCityClick(city?.name);
                                                     setShowLocationDropdown(false);
                                                 }}
                                                 className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors"
@@ -287,12 +287,12 @@ export default function HomepageBanner() {
                                                 <div className="w-full h-24 rounded-lg overflow-hidden">
                                                     <LazyLoadImage
                                                         loading='lazy'
-                                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
-                                                        alt={city.location}
+                                                        src={city?.image|| 'https://via.placeholder.com/400x300'}
+                                                        alt={city.name}
                                                         className="w-full h-full object-cover"
                                                     />
                                                 </div>
-                                                <span className="text-sm font-medium text-gray-700">{city?.location}</span>
+                                                <span className="text-sm font-medium text-gray-700">{city?.name}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -337,18 +337,18 @@ export default function HomepageBanner() {
                             {bestCitiesToVisit.map((city: any, index: number) => (
                                 <button
                                     key={index}
-                                    onClick={() => handleCityClick(city?.location)}
+                                    onClick={() => handleCityClick(city?.name)}
                                     className="relative min-w-[250px] md:min-w-[300px] lg:min-w-[350px] rounded-xl overflow-hidden shadow-lg group cursor-pointer h-64 hover:shadow-2xl transition-shadow"
                                 >
                                     <LazyLoadImage
                                         loading='lazy'
-                                        src={city?.images?.edges?.[0]?.node?.url || city?.image || 'https://via.placeholder.com/400x300'}
-                                        alt={city.title}
+                                        src={city?.image || 'https://via.placeholder.com/400x300'}
+                                        alt={city?.name}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                     <div className="absolute bottom-4 left-4">
-                                        <h3 className="text-white text-2xl font-bold">{city?.location}</h3>
+                                        <h3 className="text-white text-2xl font-bold">{city?.name}</h3>
                                     </div>
                                 </button>
                             ))}

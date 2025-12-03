@@ -143,7 +143,8 @@ export const getCollectionsWithProducts = async () => {
               altText
             }
             metafields(identifiers: [
-              {namespace: "custom", key: "banner"}
+              {namespace: "custom", key: "banner"},
+              {namespace: "custom", key: "cities_data"}
             ]) {
               key
               value
@@ -190,6 +191,11 @@ export const getCollectionsWithProducts = async () => {
         (m: any) => m?.key === "banner"
       )?.value;
 
+      // Extract cities data from collection metafield
+      const citiesMetafield = collection.metafields?.find(
+        (m: any) => m?.key === "cities_data"
+      )?.value;
+
       let bannerImages: string[] = [];
       if (bannerMetafield) {
         try {
@@ -216,6 +222,16 @@ export const getCollectionsWithProducts = async () => {
         }
       }
 
+      // Parse cities data
+      let citiesData: any[] = [];
+      if (citiesMetafield) {
+        try {
+          citiesData = JSON.parse(citiesMetafield);
+        } catch (e) {
+          console.error("Error parsing cities_data metafield:", e);
+        }
+      }
+
       return {
         id: collection.id,
         title: collection.title,
@@ -224,6 +240,7 @@ export const getCollectionsWithProducts = async () => {
         image: collection.image?.url || "",
         bannerImages: bannerImages,
         bannerMediaIds: bannerMetafield ? JSON.parse(bannerMetafield) : [], // Store raw media IDs for later fetching
+        citiesData: citiesData, // Add cities data to collection
         products: collection.products?.edges?.map((productEdge: any) => ({
           id: productEdge.node.id,
           title: productEdge.node.title,
