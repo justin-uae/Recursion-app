@@ -20,9 +20,12 @@ export default function PopularTours() {
         dispatch(fetchAllExcursions());
     }, [dispatch]);
 
-    // Get top 10 tours with useMemo for performance
+    // Get top 15 Dubai tours sorted by lowest price first
     const topTours = useMemo(() => {
-        return tours.slice(0, 10);
+        return [...tours]
+            .filter((tour) => tour?.location?.toLowerCase().includes('dubai'))
+            .sort((a, b) => (a.price || 0) - (b.price || 0))
+            .slice(0, 15);
     }, [tours]);
 
     const goToDetail = (productId: string) => {

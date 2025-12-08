@@ -10,7 +10,7 @@ import { LazyLoadImage } from 'react-lazy-load-image-component';
 type CheckoutStep = 'cart' | 'checkout';
 type CheckoutType = 'guest' | 'account';
 
-export const CartPageComplete: React.FC = () => {
+export const cartPage: React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
@@ -64,16 +64,12 @@ export const CartPageComplete: React.FC = () => {
         }, 0);
     }, [items, convertPrice]);
 
-    const tax = useMemo(() => totalPrice * 0.05, [totalPrice]);
-    const finalTotal = useMemo(() => totalPrice + tax, [totalPrice, tax]);
-
     // Calculate AED totals for order submission
     const totalPriceAED = useMemo(() => {
         return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     }, [items]);
 
-    const taxAED = useMemo(() => totalPriceAED * 0.05, [totalPriceAED]);
-    const finalTotalAED = useMemo(() => totalPriceAED + taxAED, [totalPriceAED, taxAED]);
+    const finalTotalAED = useMemo(() => totalPriceAED, [totalPriceAED]);
 
     const handleRemoveItem = (variantId: string) => {
         dispatch(removeFromCart(variantId));
@@ -369,14 +365,10 @@ export const CartPageComplete: React.FC = () => {
                                         <span>Subtotal</span>
                                         <span>{selectedCurrency?.symbol}{totalPrice.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-gray-600">
-                                        <span>VAT (5%)</span>
-                                        <span>{selectedCurrency?.symbol}{tax.toFixed(2)}</span>
-                                    </div>
                                     <div className="border-t border-gray-300 pt-3 flex justify-between items-center">
                                         <span className="text-lg font-bold text-gray-800">Total</span>
                                         <span className="text-2xl font-extrabold text-blue-600">
-                                            {selectedCurrency?.symbol}{finalTotal.toFixed(2)}
+                                            {selectedCurrency?.symbol}{totalPrice.toFixed(2)}
                                         </span>
                                     </div>
                                     {selectedCurrency.code !== 'AED' && (
@@ -659,14 +651,10 @@ export const CartPageComplete: React.FC = () => {
                                     <span>Subtotal</span>
                                     <span>{selectedCurrency?.symbol}{totalPrice.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-gray-600">
-                                    <span>VAT (5%)</span>
-                                    <span>{selectedCurrency?.symbol}{tax.toFixed(2)}</span>
-                                </div>
                                 <div className="border-t border-gray-300 pt-3 flex justify-between items-center">
                                     <span className="text-lg font-bold text-gray-800">Total</span>
                                     <span className="text-2xl font-extrabold text-blue-600">
-                                        {selectedCurrency?.symbol}{finalTotal.toFixed(2)}
+                                        {selectedCurrency?.symbol}{totalPrice.toFixed(2)}
                                     </span>
                                 </div>
                                 {selectedCurrency.code !== 'AED' && (
@@ -683,4 +671,4 @@ export const CartPageComplete: React.FC = () => {
     );
 };
 
-export default CartPageComplete;
+export default cartPage;

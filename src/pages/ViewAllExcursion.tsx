@@ -30,18 +30,29 @@ const ViewAllExcursion = () => {
     // Get location from query parameter
     const locationFromQuery = searchParams.get('location') || '';
 
-    // Filter states
+    // Filter states - Dubai and price-low as defaults
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedLocation, setSelectedLocation] = useState(locationFromQuery);
-    const [sortBy, setSortBy] = useState('rating');
+    const [selectedLocation, setSelectedLocation] = useState(locationFromQuery || 'Dubai');
+    const [sortBy, setSortBy] = useState('price-low');
 
-    // Get unique locations from excursions
+    // Get unique locations from excursions - Dubai first, Abu Dhabi second, rest alphabetically
     const uniqueLocations = Array.from(
         new Set(excursions.map((exc: Product) => exc.location).filter(Boolean))
     ).map((location) => ({
         value: location,
         label: location,
-    }));
+    })).sort((a, b) => {
+        // Dubai comes first
+        if (a.value.toLowerCase() === 'dubai') return -1;
+        if (b.value.toLowerCase() === 'dubai') return 1;
+
+        // Abu Dhabi comes second
+        if (a.value.toLowerCase() === 'abu dhabi') return -1;
+        if (b.value.toLowerCase() === 'abu dhabi') return 1;
+
+        // Rest alphabetically
+        return a.value.localeCompare(b.value);
+    });
 
     // Fetch excursions on mount
     useEffect(() => {
@@ -90,7 +101,7 @@ const ViewAllExcursion = () => {
     const clearFilters = () => {
         setSearchQuery('');
         setSelectedLocation('');
-        setSortBy('rating');
+        setSortBy('price-low');
         navigate('/excursions');
     };
 
@@ -184,9 +195,9 @@ const ViewAllExcursion = () => {
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             >
-                                <option value="rating">Highest Rated</option>
                                 <option value="price-low">Price: Low to High</option>
                                 <option value="price-high">Price: High to Low</option>
+                                <option value="rating">Highest Rated</option>
                             </select>
                         </div>
 

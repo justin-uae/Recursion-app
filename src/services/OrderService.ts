@@ -245,7 +245,6 @@ export const createOrderWithCOD = async (orderData: CreateOrderPayload): Promise
     // Step 4: Parse totals
     const totalAmount = parseFloat(updatedCart.cost.totalAmount.amount);
     const subtotalAmount = parseFloat(updatedCart.cost.subtotalAmount?.amount || '0');
-    const taxAmount = updatedCart.cost.totalTaxAmount ? parseFloat(updatedCart.cost.totalTaxAmount.amount) : 0;
 
     // Step 5: Return order object with checkout URL
     const orderObject: Order = {
@@ -256,7 +255,7 @@ export const createOrderWithCOD = async (orderData: CreateOrderPayload): Promise
       phone: orderData.phone,
       totalPrice: totalAmount,
       subtotalPrice: subtotalAmount,
-      totalTax: taxAmount,
+      totalTax: 0,
       financialStatus: 'PENDING',
       fulfillmentStatus: 'UNFULFILLED',
       createdAt: new Date().toISOString(),
